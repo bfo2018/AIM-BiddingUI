@@ -1,0 +1,33 @@
+<div class="service-dialog">
+  <div class="service-dialog-bg" [ngClass]="'service-dialog--' + data.theme">
+    <div class="service-dialog-header">
+      <div class="service-dialog-icon" aria-hidden="true">
+        <span class="material-icons">{{ data.icon }}</span>
+      </div>
+
+      <div class="service-dialog-titles">
+        <div class="service-dialog-eyebrow">AIM Healthcare Services</div>
+        <h2 class="service-dialog-title">{{ data.title }}</h2>
+      </div>
+
+      <button type="button" class="service-dialog-close" (click)="close()" aria-label="Close">
+        <span class="material-icons" aria-hidden="true">close</span>
+      </button>
+    </div>
+
+    <div class="service-dialog-body">
+      <p class="service-dialog-desc">{{ data.line1 }}</p>
+      <p class="service-dialog-desc">{{ data.line2 }}</p>
+
+      <div class="service-dialog-note">
+        <span class="material-icons" aria-hidden="true">schedule</span>
+        <span>Booking and detailed workflow will be connected once APIs are ready.</span>
+      </div>
+    </div>
+
+    <div class="service-dialog-footer">
+      <button type="button" class="service-dialog-primary" (click)="close()">Got it</button>
+    </div>
+  </div>
+</div>
+

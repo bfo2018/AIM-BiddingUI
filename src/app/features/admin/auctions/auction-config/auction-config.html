@@ -1,0 +1,101 @@
+<div class="ac-page">
+
+  <!-- Toolbar -->
+  <header class="page-toolbar">
+    <div class="page-toolbar-row page-toolbar-row--main">
+      <div class="page-toolbar-left">
+        <span class="material-icons page-toolbar-icon" aria-hidden="true">tune</span>
+        <div class="page-toolbar-text">
+          <div class="page-breadcrumb">Admin / Auction Management / <strong class="page-toolbar-heading">Configuration</strong></div>
+          <p class="page-toolbar-subtitle">Set global defaults for auction durations, increments, and auto-extend rules.</p>
+        </div>
+      </div>
+      <div class="page-toolbar-right">
+        <button type="button" class="toolbar-btn" (click)="resetDefaults()" aria-label="Reset to defaults">
+          <span class="material-icons" aria-hidden="true">restart_alt</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <p class="ac-banner ac-banner--error" *ngIf="loadError && !isLoading">{{ loadError }}</p>
+  <p class="ac-loading-msg" *ngIf="isLoading">Loading configuration…</p>
+
+  <div class="ac-body" *ngIf="!isLoading">
+
+    <!-- Duration + minimum increment (single card) -->
+    <div class="ac-card">
+      <div class="ac-card-header">
+        <span class="material-icons ac-card-icon tone-blue" aria-hidden="true">schedule</span>
+        <div>
+          <h3 class="ac-card-title">Bidding duration &amp; minimum increment</h3>
+          <p class="ac-card-desc">Default auction length, reminder before close, and minimum bid step when launching from zone setup.</p>
+        </div>
+      </div>
+      <div class="ac-fields ac-fields--wide">
+        <div class="ac-field">
+          <label class="ac-label" for="cfg-duration">Default Duration (minutes)</label>
+          <input id="cfg-duration" type="number" class="ac-input" [(ngModel)]="config.defaultDurationMinutes" min="60" step="60" />
+          <span class="ac-hint">Currently: {{ defaultDurationLabel }}</span>
+        </div>
+        <div class="ac-field">
+          <label class="ac-label" for="cfg-reminder">Reminder Before Close (minutes)</label>
+          <input id="cfg-reminder" type="number" class="ac-input" [(ngModel)]="config.reminderBeforeCloseMinutes" min="1" step="5" />
+          <span class="ac-hint">Notify bidders this many minutes before auction ends.</span>
+        </div>
+        <div class="ac-field">
+          <label class="ac-label" for="cfg-increment">Default Min Increment (₹)</label>
+          <input id="cfg-increment" type="number" class="ac-input" [(ngModel)]="config.minIncrementDefault" min="1000" step="1000" />
+          <span class="ac-hint">Smallest amount a new bid must exceed the current highest bid (editable per launch on zone setup).</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auto-Extend Card -->
+    <div class="ac-card">
+      <div class="ac-card-header">
+        <span class="material-icons ac-card-icon tone-amber" aria-hidden="true">more_time</span>
+        <div>
+          <h3 class="ac-card-title">Auto-Extend Rules</h3>
+          <p class="ac-card-desc">Automatically extend auction time when a bid arrives close to closing.</p>
+        </div>
+        <div class="ac-toggle-wrap">
+          <span class="ac-toggle-label">{{ config.autoExtendEnabled ? 'Enabled' : 'Disabled' }}</span>
+          <label class="ac-toggle" [class.active]="config.autoExtendEnabled">
+            <input type="checkbox" [(ngModel)]="config.autoExtendEnabled" />
+            <span class="ac-toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="ac-fields" [class.ac-fields--disabled]="!config.autoExtendEnabled">
+        <div class="ac-field">
+          <label class="ac-label" for="cfg-ext-mins">Extend By (minutes)</label>
+          <input id="cfg-ext-mins" type="number" class="ac-input" [(ngModel)]="config.autoExtendMinutes" min="1" step="5" [disabled]="!config.autoExtendEnabled" />
+          <span class="ac-hint">Amount of time added per auto-extension.</span>
+        </div>
+        <div class="ac-field">
+          <label class="ac-label" for="cfg-ext-within">Trigger Within (minutes of close)</label>
+          <input id="cfg-ext-within" type="number" class="ac-input" [(ngModel)]="config.autoExtendOnBidWithin" min="1" step="1" [disabled]="!config.autoExtendEnabled" />
+          <span class="ac-hint">If a bid arrives within this window, extension is triggered.</span>
+        </div>
+        <div class="ac-field">
+          <label class="ac-label" for="cfg-max-ext">Max Extensions</label>
+          <input id="cfg-max-ext" type="number" class="ac-input" [(ngModel)]="config.maxExtensions" min="0" step="1" [disabled]="!config.autoExtendEnabled" />
+          <span class="ac-hint">Maximum number of automatic extensions per auction.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Actions -->
+    <div class="ac-actions">
+      <button type="button" class="ac-btn ac-btn-ghost" (click)="resetDefaults()">
+        <span class="material-icons" aria-hidden="true">restart_alt</span>
+        Reset Defaults
+      </button>
+      <button type="button" class="ac-btn ac-btn-primary" [disabled]="isSaving" (click)="saveConfig()">
+        <span class="material-icons" aria-hidden="true">{{ isSaving ? 'hourglass_top' : 'save' }}</span>
+        {{ isSaving ? 'Saving…' : 'Save Configuration' }}
+      </button>
+    </div>
+  </div>
+</div>

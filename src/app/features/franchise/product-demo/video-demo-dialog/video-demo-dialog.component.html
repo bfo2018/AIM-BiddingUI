@@ -1,0 +1,19 @@
+<div class="video-dialog">
+  <div class="video-dialog-header">
+    <div class="video-dialog-title">
+      <span class="material-icons" aria-hidden="true">play_circle</span>
+      <span>{{ data.title || 'Platform Demo' }}</span>
+    </div>
+
+    <button type="button" class="video-dialog-close" (click)="close()" aria-label="Close">
+      <span class="material-icons" aria-hidden="true">close</span>
+    </button>
+  </div>
+
+  <div class="video-dialog-body">
+    <div class="video-shell">
+      <video class="video-player" [src]="data.src" controls autoplay playsinline></video>
+    </div>
+  </div>
+</div>
+

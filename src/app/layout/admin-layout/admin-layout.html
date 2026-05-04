@@ -1,0 +1,25 @@
+<div class="admin-shell">
+  <app-admin-sidebar
+    [isMobile]="isMobile"
+    [isOpen]="isSidebarOpen"
+    [isCollapsed]="isSidebarCollapsed"
+    [adminName]="adminName"
+    (closeSidebar)="closeSidebar()"
+    (logout)="onLogout()"
+  ></app-admin-sidebar>
+
+  <div class="admin-main" [class.mobile]="isMobile" [class.collapsed]="!isMobile && isSidebarCollapsed">
+    <app-admin-header
+      [pageTitle]="pageTitle"
+      [adminName]="adminName"
+      [isMobile]="isMobile"
+      [isSidebarCollapsed]="isSidebarCollapsed"
+      (toggleSidebar)="toggleSidebar()"
+      (toggleSidebarCollapse)="toggleSidebarCollapse()"
+    ></app-admin-header>
+
+    <main class="admin-content content-animate">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

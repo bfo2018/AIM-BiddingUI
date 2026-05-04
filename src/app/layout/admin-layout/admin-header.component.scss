@@ -1,0 +1,207 @@
+:host {
+  --header-h: 56px;
+  --hairline: rgba(15, 23, 42, 0.06);
+  --text: #0a0a0b;
+  --muted: #71717a;
+  display: block;
+}
+
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  min-height: var(--header-h);
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6, 24px);
+  padding: 0 32px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-bottom: 1px solid var(--hairline);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 1) inset;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4, 16px);
+  min-width: 0;
+}
+
+.title-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.page-context {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2, 8px);
+  flex-shrink: 0;
+}
+
+.menu-toggle-btn,
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #fafafa;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #52525b;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.menu-toggle-btn:hover,
+.icon-btn:hover {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #18181b;
+}
+
+.menu-toggle-btn .material-icons,
+.icon-btn .material-icons {
+  font-size: 20px;
+}
+
+.profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 3px 4px 3px 3px;
+  margin-left: var(--s-2, 8px);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: #ffffff;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.profile-chip:hover {
+  background: #fafafa;
+  border-color: rgba(15, 23, 42, 0.1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1e40af;
+  background: #eff6ff;
+  flex-shrink: 0;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.chip-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding-right: 2px;
+  max-width: 148px;
+}
+
+.chip-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: left;
+}
+
+.chip-meta {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1.2;
+  text-align: left;
+}
+
+.chip-chevron {
+  font-size: 18px !important;
+  color: #a1a1aa;
+  margin-right: 2px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 0 16px 0 20px;
+    gap: 16px;
+  }
+
+  .page-title {
+    font-size: 14px;
+  }
+
+  .page-context {
+    display: none;
+  }
+
+  .chip-text {
+    display: none;
+  }
+
+  .chip-chevron {
+    display: none;
+  }
+
+  .profile-chip {
+    padding: 4px;
+    min-width: 36px;
+    justify-content: center;
+    border-radius: 8px;
+    margin-left: 4px;
+  }
+
+  .profile-chip .avatar {
+    width: 28px;
+    height: 28px;
+  }
+}

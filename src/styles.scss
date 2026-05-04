@@ -1,0 +1,94 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+@import "material-icons/iconfont/material-icons.css";
+@import "@ng-select/ng-select/themes/default.theme.css";
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+/* Mat snackbar theming (overlay — global) — MDC + legacy */
+.place-bid-snack--success .mdc-snackbar__surface,
+.place-bid-snack--success .mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  background: #0f5132 !important;
+}
+.place-bid-snack--error .mdc-snackbar__surface,
+.place-bid-snack--error .mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  background: #842029 !important;
+}
+
+/* Premium live-auction toast (ngx-toastr + toast-info)
+   IMPORTANT: never set `background-image: none` after a gradient — it strips the fill and
+   `backdrop-filter` turns the toast into faint “glass” on a light page (unreadable text). */
+.toast-container .ngx-toastr.place-bid-live-toast.toast-info {
+  width: min(400px, calc(100vw - 28px));
+  margin-bottom: 12px;
+  padding: 18px 20px 16px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background-color: #0d47a1;
+  background-image: linear-gradient(145deg, #1a3a6b 0%, #1565c0 50%, #0d47a1 100%);
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow:
+    0 14px 44px rgba(15, 23, 42, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 1px 0 rgba(255, 255, 255, 0.12) inset;
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+.toast-container .ngx-toastr.place-bid-live-toast.toast-info:hover {
+  box-shadow:
+    0 18px 48px rgba(15, 23, 42, 0.5),
+    0 0 0 1px rgba(250, 204, 21, 0.25) inset;
+}
+
+.place-bid-live-toast__title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  color: #ffffff !important;
+  margin-bottom: 8px;
+  padding-right: 8px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.place-bid-live-toast__message {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #fde047 !important;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.toast-container .ngx-toastr.place-bid-live-toast .place-bid-live-toast__message a,
+.toast-container .ngx-toastr.place-bid-live-toast .place-bid-live-toast__message label {
+  color: #fef08a !important;
+}
+
+.toast-container .ngx-toastr.place-bid-live-toast .toast-progress {
+  background: linear-gradient(90deg, #facc15, #eab308);
+  opacity: 1;
+  height: 3px;
+}
+
+.toast-container .ngx-toastr.place-bid-live-toast .toast-close-button {
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: none;
+}
+
+.toast-container .ngx-toastr.place-bid-live-toast .toast-close-button:hover {
+  color: #fff;
+  opacity: 1;
+}

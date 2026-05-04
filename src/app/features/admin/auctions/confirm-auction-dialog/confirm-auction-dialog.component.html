@@ -1,0 +1,70 @@
+<div class="confirm-dialog-wrap">
+  <header class="confirm-dialog-header">
+    <span class="material-icons confirm-dialog-icon" aria-hidden="true">gavel</span>
+    <div>
+      <h2 class="confirm-dialog-title">Confirm Auction Start</h2>
+      <p class="confirm-dialog-subtitle">Review the configuration before launching</p>
+    </div>
+    <button type="button" class="confirm-dialog-close" (click)="cancel()" aria-label="Close">
+      <span class="material-icons" aria-hidden="true">close</span>
+    </button>
+  </header>
+
+  <div class="confirm-dialog-body">
+    <div class="confirm-meta-grid">
+      <div class="confirm-meta-item">
+        <span class="confirm-meta-label">Start Date &amp; Time</span>
+        <span class="confirm-meta-value">{{ data.config.startDateTime | date:'dd MMM yyyy, HH:mm' }}</span>
+      </div>
+      <div class="confirm-meta-item">
+        <span class="confirm-meta-label">End Date &amp; Time</span>
+        <span class="confirm-meta-value">{{ data.config.endDateTime | date:'dd MMM yyyy, HH:mm' }}</span>
+      </div>
+      <div class="confirm-meta-item">
+        <span class="confirm-meta-label">Min Increment</span>
+        <span class="confirm-meta-value highlight-blue">{{ formattedMinIncrement }}</span>
+      </div>
+    </div>
+
+    <div class="confirm-global-rules" *ngIf="data.globalRules">
+      <p class="confirm-global-rules-title">
+        <span class="material-icons" aria-hidden="true">tune</span>
+        Global rules (from Configuration)
+      </p>
+      <ul class="confirm-global-rules-list">
+        <li>{{ globalReminderLine }}</li>
+        <li>{{ globalAutoExtendLine }}</li>
+      </ul>
+    </div>
+
+    <div class="confirm-zones-section">
+      <p class="confirm-zones-title">
+        <span class="material-icons" aria-hidden="true">map</span>
+        {{ data.zones.length }} Zone{{ data.zones.length !== 1 ? 's' : '' }} selected for auction
+      </p>
+      <div class="confirm-zones-list">
+        <div class="confirm-zone-chip" *ngFor="let z of data.zones">
+          <span class="confirm-zone-chip-row">
+            <span class="material-icons" aria-hidden="true">location_on</span>
+            <span class="confirm-zone-chip-main">{{ z.name }}</span>
+          </span>
+          <small class="confirm-zone-chip-loc">{{ z.city }}, {{ z.state }}</small>
+          <span class="confirm-zone-chip-base">Base: {{ formatZoneBasePrice(z) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="confirm-warning">
+      <span class="material-icons" aria-hidden="true">warning_amber</span>
+      <p>Once started, bidders will be notified immediately. Ensure all details are correct.</p>
+    </div>
+  </div>
+
+  <footer class="confirm-dialog-footer">
+    <button type="button" class="cdb-btn cdb-btn-ghost" (click)="cancel()">Cancel</button>
+    <button type="button" class="cdb-btn cdb-btn-primary" (click)="confirm()">
+      <span class="material-icons" aria-hidden="true">rocket_launch</span>
+      Start Auction
+    </button>
+  </footer>
+</div>

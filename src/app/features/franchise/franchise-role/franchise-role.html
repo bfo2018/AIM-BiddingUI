@@ -1,0 +1,170 @@
+<div #pageRoot class="roles-page">
+  <section class="role-hero">
+    <div class="container role-hero-inner">
+      <span
+        aria-hidden="true"
+        class="material-icons menu-icon hero-play-icon demo-reveal demo-reveal--hero-icon"
+      >
+        groups
+      </span>
+
+      <div class="hero-copy">
+        <p class="role-hero-eyebrow role-hero-anim role-hero-anim--1">Partner responsibilities</p>
+        <h1 class="role-hero-title role-hero-anim role-hero-anim--2">Roles &amp; Responsibilities</h1>
+        <p class="role-hero-subtitle role-hero-anim role-hero-anim--3">
+          Understand your role as an AIM Franchise Partner
+        </p>
+        <p class="role-hero-lead role-hero-anim role-hero-anim--4">
+          A clear view of what you own in your zone—partner onboarding, operational coordination,
+          business growth, and compliance. Built to keep service quality high and outcomes consistent.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="role-section role-overview" aria-labelledby="overview-heading">
+    <div class="container">
+      <header class="role-section-head role-reveal">
+        <h2 id="overview-heading">Role overview</h2>
+        <p>Four responsibilities that define success in a franchise zone.</p>
+      </header>
+      <div class="overview-grid">
+        <article
+          *ngFor="let card of overviewCards; let i = index"
+          class="overview-card role-reveal"
+          [style.--stagger]="i"
+        >
+          <span class="material-icons overview-icon" aria-hidden="true">{{ card.icon }}</span>
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.description }}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="role-section role-detail" aria-labelledby="detail-heading">
+    <div class="container">
+      <header class="role-section-head role-reveal">
+        <h2 id="detail-heading">What you’re responsible for</h2>
+        <p>Structured expectations—easy to scan, easy to execute.</p>
+      </header>
+
+      <div class="detail-grid">
+        <article class="detail-panel role-reveal">
+          <div class="detail-panel-head">
+            <span class="material-icons" aria-hidden="true">person_add_alt_1</span>
+            <div>
+              <h3>Partner onboarding</h3>
+              <p>Build the local network that powers patient outcomes.</p>
+            </div>
+          </div>
+          <ul class="checklist">
+            <li *ngFor="let item of onboardingItems" [class.checklist--highlight]="item.highlight">
+              <span class="material-icons checklist-icon" aria-hidden="true">check_circle</span>
+              <span>{{ item.text }}</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="detail-panel role-reveal">
+          <div class="detail-panel-head">
+            <span class="material-icons" aria-hidden="true">settings_suggest</span>
+            <div>
+              <h3>Operations &amp; service management</h3>
+              <p>Ensure reliability, availability, and consistent coordination.</p>
+            </div>
+          </div>
+          <ul class="op-list">
+            <li *ngFor="let item of operationsItems">
+              <span class="material-icons op-icon" aria-hidden="true">{{ item.icon }}</span>
+              <span>{{ item.text }}</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="detail-panel role-reveal detail-panel--wide">
+          <div class="detail-panel-head">
+            <span class="material-icons" aria-hidden="true">trending_up</span>
+            <div>
+              <h3>Business growth &amp; revenue</h3>
+              <p>Drive adoption and build a healthy booking pipeline.</p>
+            </div>
+          </div>
+          <ul class="checklist">
+            <li *ngFor="let item of growthItems" [class.checklist--highlight]="item.highlight">
+              <span class="material-icons checklist-icon" aria-hidden="true">check_circle</span>
+              <span>{{ item.text }}</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="detail-panel role-reveal detail-panel--finance">
+          <div class="detail-panel-head">
+            <span class="material-icons" aria-hidden="true">verified_user</span>
+            <div>
+              <h3>Compliance &amp; platform guidelines</h3>
+              <p>Protect trust by keeping partner quality and integrity high.</p>
+            </div>
+          </div>
+          <ul class="checklist">
+            <li *ngFor="let item of complianceItems" [class.checklist--highlight]="item.highlight">
+              <span class="material-icons checklist-icon" aria-hidden="true">check_circle</span>
+              <span>{{ item.text }}</span>
+            </li>
+          </ul>
+          <p class="finance-note">
+            <span class="material-icons" aria-hidden="true">tips_and_updates</span>
+            Keep documentation clear, partner details accurate, and service availability honest.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="role-section role-merged" aria-labelledby="merged-heading">
+    <div class="container">
+      <header class="role-section-head role-reveal">
+        <h2 id="merged-heading">Franchise fundamentals</h2>
+        <p>Capabilities that combine “requirements” and day-to-day responsibility.</p>
+      </header>
+
+      <div class="fundamentals-grid">
+        <article *ngFor="let c of mergedContext; let i = index" class="fund-card role-reveal" [style.--stagger]="i">
+          <div class="fund-kicker">{{ c.label }}</div>
+          <div class="fund-value">{{ c.value }}</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="role-section role-success" aria-labelledby="success-heading">
+    <div class="container">
+      <header class="role-section-head role-reveal">
+        <h2 id="success-heading">What success looks like</h2>
+        <p>Signals we expect from a strong franchise zone.</p>
+      </header>
+
+      <div class="success-grid">
+        <article
+          *ngFor="let s of successSignals; let i = index"
+          class="success-card role-reveal"
+          [style.--stagger]="i"
+        >
+          <span class="material-icons success-icon" aria-hidden="true">{{ s.icon }}</span>
+          <h3>{{ s.title }}</h3>
+          <p>{{ s.blurb }}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="role-cta role-reveal" aria-labelledby="cta-heading">
+    <div class="container role-cta-inner">
+      <div class="role-cta-copy">
+        <h2 id="cta-heading">Ready to take on the role of a Franchise Partner?</h2>
+        <p>Start your application—our team will review fit and next steps with you.</p>
+      </div>
+      <a routerLink="/franchise/franchise-application" class="btn-apply">Apply now</a>
+    </div>
+  </section>
+</div>

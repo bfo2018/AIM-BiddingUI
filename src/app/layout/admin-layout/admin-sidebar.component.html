@@ -1,0 +1,87 @@
+<div class="admin-sidebar-overlay" *ngIf="isMobile && isOpen" (click)="closeSidebar.emit()"></div>
+
+<aside class="admin-sidebar" [class.mobile]="isMobile" [class.open]="isOpen" [class.collapsed]="!isMobile && isCollapsed">
+  <div class="sidebar-inner">
+    <div class="sidebar-top">
+      <div class="brand-mark" aria-hidden="true">
+        <span class="brand-glyph">FB</span>
+      </div>
+      <div class="brand-text" *ngIf="!isCollapsed">
+        <span class="brand-title">Admin</span>
+        <span class="brand-sub">Franchise Bidding</span>
+      </div>
+    </div>
+
+    <div class="sidebar-menu-scroll">
+      <p class="nav-section-label" *ngIf="!isCollapsed">Workspace</p>
+      <nav class="sidebar-nav" aria-label="Admin navigation">
+        <a
+          *ngFor="let item of navItems"
+          class="nav-item"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [attr.title]="isCollapsed ? item.label : null"
+          (click)="onMenuItemClick()"
+        >
+          <span class="nav-item-inner">
+            <span class="material-icons nav-icon" aria-hidden="true">{{ item.icon }}</span>
+            <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
+          </span>
+        </a>
+      </nav>
+
+      <p class="nav-section-label" *ngIf="!isCollapsed" style="margin-top:16px">Modules</p>
+      <nav class="sidebar-nav" aria-label="Module navigation">
+        <div
+          *ngFor="let group of navGroups"
+          class="nav-group"
+          [class.nav-group--open]="isGroupOpen(group.label)"
+        >
+          <!-- Group header -->
+          <button
+            type="button"
+            class="nav-item nav-group-toggle"
+            [attr.title]="isCollapsed ? group.label : null"
+            (click)="toggleGroup(group.label)"
+          >
+            <span class="nav-item-inner">
+              <span class="material-icons nav-icon" aria-hidden="true">{{ group.icon }}</span>
+              <span class="nav-label" *ngIf="!isCollapsed">{{ group.label }}</span>
+              <span class="material-icons nav-chevron" aria-hidden="true" *ngIf="!isCollapsed">
+                {{ isGroupOpen(group.label) ? 'expand_less' : 'expand_more' }}
+              </span>
+            </span>
+          </button>
+          <!-- Sub items -->
+          <div class="nav-sub-items" *ngIf="isGroupOpen(group.label) && !isCollapsed">
+            <a
+              *ngFor="let child of group.children"
+              class="nav-sub-item"
+              [routerLink]="child.route"
+              routerLinkActive="active"
+              (click)="onMenuItemClick()"
+            >
+              <span class="material-icons nav-sub-icon" aria-hidden="true">{{ child.icon }}</span>
+              {{ child.label }}
+            </a>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="avatar" aria-hidden="true">{{ adminInitials || 'AD' }}</div>
+        <div class="profile-copy" *ngIf="!isCollapsed">
+          <strong>{{ adminName }}</strong>
+          <span class="role">Administrator</span>
+        </div>
+      </div>
+      <button type="button" class="logout-btn" (click)="logout.emit()">
+        <span class="material-icons" aria-hidden="true">logout</span>
+        <span *ngIf="!isCollapsed">Sign out</span>
+      </button>
+    </div>
+  </div>
+</aside>

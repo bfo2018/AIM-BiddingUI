@@ -1,0 +1,307 @@
+<div class="users-page">
+  <header class="page-toolbar">
+    <div class="page-toolbar-row page-toolbar-row--main">
+      <div class="page-toolbar-left">
+        <span class="material-icons page-toolbar-icon" aria-hidden="true">badge</span>
+        <div class="page-toolbar-text">
+          <div class="page-breadcrumb">Admin / <strong class="page-toolbar-heading">Users Management</strong></div>
+          <p class="page-toolbar-subtitle">{{ pageToolbarSubtitle }}</p>
+        </div>
+      </div>
+      <div class="page-toolbar-right">
+        <span class="toolbar-badge">{{ toolbarBadgeText }}</span>
+        <div class="duration-filter-container">
+          <select
+            [(ngModel)]="durationPreset"
+            (ngModelChange)="onDurationChange()"
+            aria-label="Duration"
+          >
+            <option value="till_now">Till Now</option>
+            <option value="today">Today · {{ todayOptionLabel }}</option>
+            <option value="yesterday">Yesterday · {{ yesterdayOptionLabel }}</option>
+            <option value="week">Current week</option>
+            <option value="month">Current month</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="toolbar-input-wrap">
+          <span class="material-icons input-leading" aria-hidden="true">search</span>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onFiltersChanged()"
+            placeholder="Name or mobile"
+          />
+        </div>
+        <button
+          type="button"
+          class="toolbar-btn toolbar-btn-refresh"
+          (click)="refreshTable()"
+          aria-label="Refresh list"
+        >
+          <span class="material-icons" aria-hidden="true">sync</span>
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn toolbar-btn-filter"
+          (click)="openFilterPanel()"
+          aria-label="Open filters"
+        >
+          <span class="material-icons" aria-hidden="true">filter_list</span>
+        </button>
+      </div>
+    </div>
+    <div class="page-toolbar-row page-toolbar-row--custom" *ngIf="durationPreset === 'custom'">
+      <div class="page-toolbar-custom-strip">
+        <label class="toolbar-date-field" for="toolbar-custom-from">
+          <span class="toolbar-date-label">From:</span>
+          <input
+            id="toolbar-custom-from"
+            type="date"
+            class="toolbar-date-input"
+            [(ngModel)]="fromDate"
+          />
+        </label>
+        <label class="toolbar-date-field" for="toolbar-custom-to">
+          <span class="toolbar-date-label">To:</span>
+          <input
+            id="toolbar-custom-to"
+            type="date"
+            class="toolbar-date-input"
+            [(ngModel)]="toDate"
+          />
+        </label>
+        <button type="button" class="toolbar-pill-btn toolbar-pill-btn--primary" (click)="applyCustomDateSearch()">
+          Search
+        </button>
+        <button type="button" class="toolbar-pill-btn toolbar-pill-btn--ghost" (click)="clearCustomDateRange()">
+          Clear
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="stats-wrapper">
+    <div class="stats-inline" *ngIf="statsLayoutMode === 'inline'">
+      <div class="stats-inline-row">
+        <div
+          class="stat-inline"
+          *ngFor="let it of statBarItems"
+          [ngClass]="'tone-' + it.tone"
+        >
+          <span class="material-icons stat-inline-icon" aria-hidden="true">{{ it.icon }}</span>
+          <div class="stat-inline-text">
+            <span class="stat-inline-num">{{ it.num }}</span>
+            <span class="stat-inline-label">{{ it.label }}</span>
+          </div>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="stat-layout-toggle"
+        (click)="toggleStatsLayout()"
+        aria-label="Switch to expanded stats layout"
+      >
+        <span class="material-icons" aria-hidden="true">dashboard_customize</span>
+      </button>
+    </div>
+    <div class="stats-bar" *ngIf="statsLayoutMode === 'bar'">
+      <div
+        class="stat-item"
+        *ngFor="let it of statBarItems"
+        [ngClass]="'tone-' + it.tone"
+      >
+        <div class="stat-icon">
+          <span class="material-icons" aria-hidden="true">{{ it.icon }}</span>
+        </div>
+        <div class="stat-content">
+          <span class="stat-number">{{ it.num }}</span>
+          <span class="stat-label">{{ it.label }}</span>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="stat-layout-toggle"
+        (click)="toggleStatsLayout()"
+        aria-label="Switch to compact stats layout"
+      >
+        <span class="material-icons" aria-hidden="true">view_agenda</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="applied-filters-section" *ngIf="appliedFilterTags.length > 0">
+    <div class="applied-filters-inner">
+      <span class="applied-filters-label">Filters:</span>
+      <div class="filters-scroll">
+        <div class="filter-tags">
+          <button
+            type="button"
+            class="filter-tag"
+            *ngFor="let tag of appliedFilterTags; trackBy: trackByFilterTag"
+            (click)="removeAppliedFilter(tag.id)"
+            [attr.aria-label]="'Remove filter ' + tag.label + ': ' + tag.value"
+          >
+            <span class="filter-label">{{ tag.label }}:</span>
+            <span class="filter-value">{{ tag.value }}</span>
+            <span class="material-icons filter-tag-close" aria-hidden="true">close</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="filter-panel-layer" *ngIf="filterPanelOpen">
+    <div
+      class="filter-panel-backdrop"
+      (click)="closeFilterPanel()"
+      aria-hidden="true"
+    ></div>
+    <aside
+      class="filter-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="filter-panel-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="filter-panel-header">
+        <span class="material-icons" aria-hidden="true">filter_alt</span>
+        <h2 id="filter-panel-title">Filters</h2>
+        <button
+          type="button"
+          class="filter-panel-close"
+          (click)="closeFilterPanel()"
+          aria-label="Close filters"
+        >
+          <span class="material-icons" aria-hidden="true">close</span>
+        </button>
+      </header>
+      <div class="filter-panel-body card-body">
+        <div class="field">
+          <span>Application status</span>
+          <select
+            [(ngModel)]="applicationFilter"
+            (ngModelChange)="onFiltersChanged()"
+            aria-label="Application status"
+          >
+            <option value="all">All</option>
+            <option value="not_started">Not started</option>
+            <option value="in_progress">In progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div class="field">
+          <span>Payment status</span>
+          <select
+            [(ngModel)]="paymentFilter"
+            (ngModelChange)="onFiltersChanged()"
+            aria-label="Payment status"
+          >
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
+        <div class="field">
+          <span>Bidding eligibility</span>
+          <select
+            [(ngModel)]="eligibilityFilter"
+            (ngModelChange)="onFiltersChanged()"
+            aria-label="Bidding eligibility"
+          >
+            <option value="all">All</option>
+            <option value="eligible">Eligible</option>
+            <option value="not_eligible">Not eligible</option>
+          </select>
+        </div>
+        <div class="filter-panel-actions">
+          <button type="button" class="btn btn-ghost" (click)="resetFilters(); closeFilterPanel()">
+            Reset all
+          </button>
+          <button type="button" class="btn filter-panel-apply" (click)="applyFilterPanel()">
+            Apply
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="content-grid">
+    <article class="table-card">
+      <div class="table-scroll">
+        <div class="empty-state" *ngIf="loading">Loading users...</div>
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>User Name</th>
+              <th>Mobile Number</th>
+              <th>City / State</th>
+              <th>Application Status</th>
+              <th>Payment Status</th>
+              <th>Bidding Eligibility</th>
+              <th>Total Bids</th>
+              <th>Last Activity</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let user of pagedUsers; trackBy: trackByUser"
+              [class.row-updated]="updatedUserIds.has(user.id)"
+            >
+              <td>
+                <strong>{{ user.name }}</strong>
+              </td>
+              <td>{{ user.mobile }}</td>
+              <td>{{ user.city }}, {{ user.state }}</td>
+              <td>
+                <span class="badge badge-application" [class.is-complete]="user.applicationStatus === 'completed'" [class.is-progress]="user.applicationStatus === 'in_progress'">
+                  {{ appStatusLabel(user.applicationStatus) }}
+                </span>
+              </td>
+              <td>
+                <span class="badge badge-payment" [class.is-paid]="user.paymentStatus === 'paid'" [class.is-pending]="user.paymentStatus === 'pending'">
+                  {{ paymentLabel(user.paymentStatus) }}
+                </span>
+              </td>
+              <td>
+                <span class="badge badge-eligibility" [class.is-eligible]="user.eligibility === 'eligible'" [class.is-not-eligible]="user.eligibility === 'not_eligible'">
+                  {{ eligibilityLabel(user.eligibility) }}
+                </span>
+              </td>
+              <td class="num">{{ user.totalBids }}</td>
+              <td>{{ user.lastActivityLabel }}</td>
+              <td>
+                <div class="action-wrap">
+                  <button type="button" class="btn btn-mini" (click)="openUserDetails(user)">View</button>
+                  <button type="button" class="btn btn-mini btn-green" (click)="approveUser(user)">Approve</button>
+                  <button type="button" class="btn btn-mini btn-red" (click)="rejectUser(user)">Reject</button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="pagedUsers.length === 0">
+              <td colspan="9" class="empty-state">No users found for selected filters.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="table-footer">
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <div class="pager-actions">
+          <button type="button" class="btn btn-ghost" (click)="goToPrevPage()" [disabled]="currentPage === 1">
+            Prev
+          </button>
+          <button
+            type="button"
+            class="btn btn-ghost"
+            (click)="goToNextPage()"
+            [disabled]="currentPage === totalPages"
+          >
+            Next
+          </button>
+        </div>
+      </footer>
+    </article>
+  </section>
+</div>

@@ -1,0 +1,104 @@
+/* Shared auction page-toolbar — included in each feature SCSS via @use or direct import */
+
+$tb-blue: #1565c0;
+$tb-blue-deep: #0d47a1;
+
+.page-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 16px 20px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, $tb-blue 0%, $tb-blue-deep 100%);
+  box-shadow: 0 8px 28px rgba(13, 71, 161, 0.26);
+  color: #fff;
+}
+
+.page-toolbar-row--main {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.page-toolbar-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.page-toolbar-icon {
+  font-size: 26px;
+  opacity: 0.95;
+  margin-top: 2px;
+}
+
+.page-toolbar-text { min-width: 0; }
+
+.page-breadcrumb {
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin-bottom: 5px;
+  letter-spacing: 0.02em;
+}
+
+.page-toolbar-heading {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.page-toolbar-subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.4;
+}
+
+.page-toolbar-right {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.toolbar-badge {
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+}
+
+.toolbar-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: #fff;
+  color: $tb-blue;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+
+  .material-icons { font-size: 20px; }
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transform: translateY(-1px);
+  }
+}

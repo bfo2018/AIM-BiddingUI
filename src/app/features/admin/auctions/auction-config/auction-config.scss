@@ -1,0 +1,229 @@
+@use '../shared/auction-toolbar';
+
+:host { display: block; }
+.ac-page { display: flex; flex-direction: column; gap: 0; }
+
+.ac-banner {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.ac-banner--error {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  color: #991b1b;
+}
+
+.ac-loading-msg {
+  margin: 14px 0 0;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.ac-body {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+/* Card */
+.ac-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.ac-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  background: #f8fafc;
+}
+
+.ac-card-icon { font-size: 26px; flex-shrink: 0; margin-top: 2px; }
+
+.ac-card-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ac-card-desc {
+  margin: 5px 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.tone-blue  { color: #1565c0; }
+.tone-amber { color: #d97706; }
+
+/* Toggle */
+.ac-toggle-wrap {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ac-toggle-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.ac-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+
+  input { display: none; }
+
+  &.active .ac-toggle-slider {
+    background: #1565c0;
+    &::after { transform: translateX(20px); }
+  }
+}
+
+.ac-toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: #cbd5e1;
+  border-radius: 999px;
+  transition: background 200ms ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    top: 3px;
+    left: 3px;
+    transition: transform 200ms ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Fields */
+.ac-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 18px 20px;
+  transition: opacity 200ms ease;
+
+  &.ac-fields--wide {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  }
+
+  &.ac-fields--disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+}
+
+.ac-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ac-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.ac-input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 0.84rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+
+  &:focus {
+    border-color: #1565c0;
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15);
+    background: #fff;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background: #f1f5f9;
+  }
+}
+
+.ac-hint {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* Actions */
+.ac-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.ac-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 140ms ease;
+
+  .material-icons { font-size: 18px; }
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.ac-btn-ghost {
+  background: #f8fafc;
+  color: #475569;
+  border-color: rgba(15, 23, 42, 0.14);
+  &:hover:not(:disabled) { background: #e2e8f0; }
+}
+
+.ac-btn-primary {
+  background: #1565c0;
+  color: #fff;
+  border-color: #0d47a1;
+  &:hover:not(:disabled) {
+    background: #0d47a1;
+    box-shadow: 0 4px 14px rgba(13, 71, 161, 0.3);
+    transform: translateY(-1px);
+  }
+}

@@ -1,0 +1,84 @@
+<section class="brand-showcase">
+  <img src="assets/AIMLOGO.png" alt="AIM logo" />
+  <div>
+    <h1>Franchise Bidding Platform</h1>
+    <p>Modern franchise growth suite</p>
+  </div>
+</section>
+
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">Franchise Growth Platform</p>
+    <h2>Build, evaluate, and win better franchise bids.</h2>
+    <p class="subtitle">
+      A modern workspace for franchise onboarding—from eligibility and contracts to investment
+      clarity, applications, team roles, and guided bidding.
+    </p>
+    <div class="hero-actions">
+      <button mat-flat-button color="primary" routerLink="/franchise/place-bid">Start Bidding</button>
+      <button mat-stroked-button color="primary" routerLink="/franchise/product-demo">
+        View Product Demo
+      </button>
+    </div>
+  </div>
+
+  <mat-card class="hero-card">
+    <mat-card-content>
+      <h3>Today at a glance</h3>
+      <p>12 opportunities reviewed</p>
+      <p>4 bids under evaluation</p>
+      <p>2 contracts pending acceptance</p>
+    </mat-card-content>
+  </mat-card>
+</section>
+
+<section class="section-block">
+  <div class="section-head">
+    <h3>Core features</h3>
+    <p>Everything needed to run a clean and scalable franchise bidding operation.</p>
+  </div>
+  <div class="feature-grid">
+    <mat-card *ngFor="let item of features">
+      <mat-card-content>
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <h4>{{ item.title }}</h4>
+        <p>{{ item.description }}</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</section>
+
+<section class="section-block">
+  <div class="section-head">
+    <h3>Services</h3>
+    <p>Modular building blocks to manage the entire franchise lifecycle.</p>
+  </div>
+  <div class="service-grid">
+    <mat-card *ngFor="let service of services">
+      <mat-card-content>
+        <h4>{{ service.title }}</h4>
+        <p>{{ service.content }}</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</section>
+
+<section class="section-block benefit-section">
+  <div class="section-head">
+    <h3>Franchise benefits</h3>
+    <p>Designed for operational clarity, growth velocity, and enterprise readiness.</p>
+  </div>
+  <ul>
+    <li *ngFor="let benefit of benefits">{{ benefit }}</li>
+  </ul>
+</section>
+
+<section class="cta-strip">
+  <div>
+    <h3>Ready to launch your next franchise bid?</h3>
+    <p>Move from discovery to submission with a focused and beautiful workflow.</p>
+  </div>
+  <button mat-flat-button color="primary" routerLink="/franchise/franchise-application">
+    Start application
+  </button>
+</section>

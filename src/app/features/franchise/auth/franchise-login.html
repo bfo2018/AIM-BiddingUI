@@ -1,0 +1,333 @@
+<div class="login-page">
+  <div class="container login-shell">
+    <div class="split-grid">
+      <!-- Left: branding -->
+      <aside class="brand-panel" aria-label="Platform overview">
+        <div class="brand-panel-inner fade-in">
+          <!-- <div class="brand-mark">
+            <img src="/assets/AIMLOGO.png" alt="" class="brand-mark-img" width="48" height="48" />
+            <div>
+              <p class="brand-kicker">Franchise Bidding Platform</p>
+              <h1 class="brand-title">Modern franchise growth suite</h1>
+            </div>
+          </div>
+          <p class="brand-lead">
+            Secure sign-in to manage zones, place bids, and track settlements — built for
+            franchise operators who need clarity and speed.
+          </p> -->
+
+          <section class="platform-overview" aria-labelledby="platform-overview-title">
+            <p class="platform-eyebrow po-enter po-enter--1">Platform overview</p>
+            <h2 id="platform-overview-title" class="platform-title po-enter po-enter--2">
+              Our Healthcare Services
+            </h2>
+            <p class="platform-subtitle po-enter po-enter--3">
+              AIM connects patients and providers across consultation modes — in-person, remote,
+              home visit, and urgent pathways. Pharmacy excluded; services below mirror the AIM app.
+            </p>
+
+            <div class="login-hc-grid" role="list" aria-label="AIM healthcare services">
+              <p class="login-hc-category login-hc-category--doctor">Doctor</p>
+
+              <div
+                class="login-hc-card login-hc-area--personal login-hc-card--personal"
+                role="button"
+                tabindex="0"
+                (click)="openServiceDetails(healthcareById.personal)"
+                (keydown.enter)="openServiceDetails(healthcareById.personal)"
+                (keydown.space)="$event.preventDefault(); openServiceDetails(healthcareById.personal)"
+              >
+                <span class="login-hc-card-shine" aria-hidden="true"></span>
+                <div class="login-hc-card-inner">
+                  <div class="login-hc-icon-wrap login-hc-icon-wrap--personal">
+                    <span class="material-icons login-hc-icon" aria-hidden="true">{{
+                      healthcareById.personal.icon
+                    }}</span>
+                  </div>
+                  <div class="login-hc-card-copy">
+                    <h3 class="login-hc-card-title">{{ healthcareById.personal.title }}</h3>
+                    <p class="login-hc-card-desc">
+                      <span>{{ healthcareById.personal.line1 }}</span>
+                      <span>{{ healthcareById.personal.line2 }}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="login-hc-card login-hc-area--audio login-hc-card--audio"
+                role="button"
+                tabindex="0"
+                (click)="openServiceDetails(healthcareById.audio)"
+                (keydown.enter)="openServiceDetails(healthcareById.audio)"
+                (keydown.space)="$event.preventDefault(); openServiceDetails(healthcareById.audio)"
+              >
+                <span class="login-hc-card-shine" aria-hidden="true"></span>
+                <div class="login-hc-card-inner">
+                  <div class="login-hc-icon-wrap login-hc-icon-wrap--audio">
+                    <span class="material-icons login-hc-icon" aria-hidden="true">{{
+                      healthcareById.audio.icon
+                    }}</span>
+                  </div>
+                  <div class="login-hc-card-copy">
+                    <h3 class="login-hc-card-title">{{ healthcareById.audio.title }}</h3>
+                    <p class="login-hc-card-desc">
+                      <span>{{ healthcareById.audio.line1 }}</span>
+                      <span>{{ healthcareById.audio.line2 }}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="login-hc-card login-hc-area--video login-hc-card--video"
+                role="button"
+                tabindex="0"
+                (click)="openServiceDetails(healthcareById.video)"
+                (keydown.enter)="openServiceDetails(healthcareById.video)"
+                (keydown.space)="$event.preventDefault(); openServiceDetails(healthcareById.video)"
+              >
+                <span class="login-hc-card-shine" aria-hidden="true"></span>
+                <div class="login-hc-card-inner">
+                  <div class="login-hc-icon-wrap login-hc-icon-wrap--video">
+                    <span class="material-icons login-hc-icon" aria-hidden="true">{{
+                      healthcareById.video.icon
+                    }}</span>
+                  </div>
+                  <div class="login-hc-card-copy">
+                    <h3 class="login-hc-card-title">{{ healthcareById.video.title }}</h3>
+                    <p class="login-hc-card-desc">
+                      <span>{{ healthcareById.video.line1 }}</span>
+                      <span>{{ healthcareById.video.line2 }}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <p class="login-hc-category login-hc-category--nurse">Nurse</p>
+              <p class="login-hc-category login-hc-category--physio">Physiotherapist</p>
+              <p class="login-hc-category login-hc-category--emergency">Emergency</p>
+
+              <div
+                class="login-hc-card login-hc-area--nurse login-hc-card--nurse"
+                role="button"
+                tabindex="0"
+                (click)="openServiceDetails(healthcareById.nurse)"
+                (keydown.enter)="openServiceDetails(healthcareById.nurse)"
+                (keydown.space)="$event.preventDefault(); openServiceDetails(healthcareById.nurse)"
+              >
+                <span class="login-hc-card-shine" aria-hidden="true"></span>
+                <div class="login-hc-card-inner">
+                  <div class="login-hc-icon-wrap login-hc-icon-wrap--nurse">
+                    <span class="material-icons login-hc-icon" aria-hidden="true">{{
+                      healthcareById.nurse.icon
+                    }}</span>
+                  </div>
+                  <div class="login-hc-card-copy">
+                    <h3 class="login-hc-card-title">{{ healthcareById.nurse.title }}</h3>
+                    <p class="login-hc-card-desc">
+                      <span>{{ healthcareById.nurse.line1 }}</span>
+                      <span>{{ healthcareById.nurse.line2 }}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="login-hc-card login-hc-area--homeVisit login-hc-card--homeVisit"
+                role="button"
+                tabindex="0"
+                (click)="openServiceDetails(healthcareById.homeVisit)"
+                (keydown.enter)="openServiceDetails(healthcareById.homeVisit)"
+                (keydown.space)="$event.preventDefault(); openServiceDetails(healthcareById.homeVisit)"
+              >
+                <span class="login-hc-card-shine" aria-hidden="true"></span>
+                <div class="login-hc-card-inner">
+                  <div class="login-hc-icon-wrap login-hc-icon-wrap--homeVisit">
+                    <span class="material-icons login-hc-icon" aria-hidden="true">{{
+                      healthcareById.homeVisit.icon
+                    }}</span>
+                  </div>
+                  <div class="login-hc-card-copy">
+                    <h3 class="login-hc-card-title">{{ healthcareById.homeVisit.title }}</h3>
+                    <p class="login-hc-card-desc">
+                      <span>{{ healthcareById.homeVisit.line1 }}</span>
+                      <span>{{ healthcareById.homeVisit.line2 }}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="login-hc-card login-hc-area--physio login-hc-card--physio"
+                role="button"
+                tabindex="0"
+                (click)="openServiceDetails(healthcareById.physio)"
+                (keydown.enter)="openServiceDetails(healthcareById.physio)"
+                (keydown.space)="$event.preventDefault(); openServiceDetails(healthcareById.physio)"
+              >
+                <span class="login-hc-card-shine" aria-hidden="true"></span>
+                <div class="login-hc-card-inner">
+                  <div class="login-hc-icon-wrap login-hc-icon-wrap--physio">
+                    <span class="material-icons login-hc-icon" aria-hidden="true">{{
+                      healthcareById.physio.icon
+                    }}</span>
+                  </div>
+                  <div class="login-hc-card-copy">
+                    <h3 class="login-hc-card-title">{{ healthcareById.physio.title }}</h3>
+                    <p class="login-hc-card-desc">
+                      <span>{{ healthcareById.physio.line1 }}</span>
+                      <span>{{ healthcareById.physio.line2 }}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="login-hc-card login-hc-area--emergency login-hc-card--emergency"
+                role="button"
+                tabindex="0"
+                (click)="openServiceDetails(healthcareById.emergency)"
+                (keydown.enter)="openServiceDetails(healthcareById.emergency)"
+                (keydown.space)="$event.preventDefault(); openServiceDetails(healthcareById.emergency)"
+              >
+                <span class="login-hc-card-shine" aria-hidden="true"></span>
+                <div class="login-hc-card-inner">
+                  <div class="login-hc-icon-wrap login-hc-icon-wrap--emergency">
+                    <span class="material-icons login-hc-icon" aria-hidden="true">{{
+                      healthcareById.emergency.icon
+                    }}</span>
+                  </div>
+                  <div class="login-hc-card-copy">
+                    <h3 class="login-hc-card-title">{{ healthcareById.emergency.title }}</h3>
+                    <p class="login-hc-card-desc">
+                      <span>{{ healthcareById.emergency.line1 }}</span>
+                      <span>{{ healthcareById.emergency.line2 }}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </aside>
+
+      <!-- Right: auth card -->
+      <section class="auth-panel">
+        <div class="card login-card fade-in">
+          <div class="login-card-head">
+            <div class="login-logo-center">
+              <img class="login-logo-img" src="/assets/AIMLOGO.png" alt="AIM" width="72" height="72" />
+            </div>
+            <h2 class="login-heading">Sign in</h2>
+            <p class="login-subheading">
+              Use your mobile number. We’ll send a one-time code to verify it’s you.
+            </p>
+          </div>
+
+          <form [formGroup]="loginForm" class="auth-form stack gap-lg" novalidate>
+            <div class="form-section">
+              <div class="section-heading">
+                <span class="section-step" aria-hidden="true">1</span>
+                <div class="section-heading-text">
+                  <span class="section-title">Mobile number</span>
+                  <span class="section-caption">India (+91) · 10 digits</span>
+                </div>
+              </div>
+              <div
+                class="phone-field"
+                [class.has-error]="
+                  loginForm.get('mobile')?.touched && loginForm.get('mobile')?.invalid
+                "
+              >
+                <span class="phone-prefix" aria-hidden="true">+91</span>
+                <input
+                  id="mobile"
+                  class="form-control phone-input"
+                  formControlName="mobile"
+                  type="tel"
+                  inputmode="numeric"
+                  maxlength="10"
+                  autocomplete="tel"
+                  placeholder="98765 43210"
+                />
+              </div>
+              <p
+                class="field-hint is-error"
+                *ngIf="loginForm.get('mobile')?.touched && loginForm.get('mobile')?.invalid"
+              >
+                Enter a valid 10-digit mobile number.
+              </p>
+            </div>
+
+            <button
+              *ngIf="hasMobileInput"
+              type="button"
+              class="btn btn-secondary btn-block btn-otp-send"
+              (click)="sendOtp()"
+              [disabled]="sendingOtp"
+            >
+              <span class="material-icons btn-leading" aria-hidden="true">sms</span>
+              {{ sendingOtp ? 'Sending code…' : 'Send verification code' }}
+            </button>
+
+            <div *ngIf="otpSent && generatedOtp" class="otp-demo-callout">
+              <div class="otp-demo-callout-icon" aria-hidden="true">
+                <span class="material-icons">developer_mode</span>
+              </div>
+              <div class="otp-demo-callout-body">
+                <p class="otp-demo-label">Demo environment</p>
+                <p class="otp-demo-code">{{ generatedOtp }}</p>
+                <p class="otp-demo-hint">No SMS in demo — use this code to continue.</p>
+              </div>
+            </div>
+
+            <div class="form-section otp-block" *ngIf="otpSent">
+              <div class="section-heading">
+                <span class="section-step" aria-hidden="true">2</span>
+                <div class="section-heading-text">
+                  <span class="section-title">Verification code</span>
+                  <span class="section-caption">6-digit OTP</span>
+                </div>
+              </div>
+              <p class="otp-microcopy">Enter the code to finish signing in. Code expires after use in demo.</p>
+              <div
+                class="otp-input-wrap"
+                [class.has-error]="loginForm.get('otp')?.touched && loginForm.get('otp')?.invalid"
+              >
+                <input
+                  id="otp"
+                  class="form-control otp-input"
+                  formControlName="otp"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="6"
+                  autocomplete="one-time-code"
+                  placeholder="000000"
+                  aria-label="Enter 6-digit verification code"
+                />
+              </div>
+              <p
+                class="field-hint is-error"
+                *ngIf="loginForm.get('otp')?.touched && loginForm.get('otp')?.invalid"
+              >
+                Enter the 6-digit code.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-primary btn-block btn-verify"
+              [disabled]="!otpSent || loginForm.get('otp')?.invalid || loading"
+              (click)="onVerifyOtp()"
+            >
+              <span class="material-icons btn-leading" aria-hidden="true">lock_open</span>
+              {{ loading ? 'Verifying…' : 'Verify & continue' }}
+            </button>
+          </form>
+
+          <p *ngIf="error" class="alert-inline" role="alert">{{ error }}</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

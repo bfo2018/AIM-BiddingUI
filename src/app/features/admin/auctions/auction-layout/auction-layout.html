@@ -1,0 +1,16 @@
+<div class="auction-module-wrap">
+  <nav class="auction-subnav" aria-label="Auction Management sections">
+    <a
+      *ngFor="let item of navItems"
+      class="auction-subnav-item"
+      [routerLink]="item.route"
+      routerLinkActive="active"
+    >
+      <span class="material-icons" aria-hidden="true">{{ item.icon }}</span>
+      {{ item.label }}
+    </a>
+  </nav>
+  <div class="auction-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

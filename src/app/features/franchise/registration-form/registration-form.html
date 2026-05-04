@@ -1,0 +1,815 @@
+<div class="application-page">
+  <section class="app-hero">
+    <div class="container app-hero-inner">
+      <span
+        aria-hidden="true"
+        class="material-icons menu-icon hero-play-icon app-hero-anim app-hero-anim--1"
+      >
+        how_to_reg
+      </span>
+
+      <div class="hero-copy">
+        <p class="app-hero-eyebrow app-hero-anim app-hero-anim--1">Partner onboarding</p>
+        <h1 class="app-hero-title app-hero-anim app-hero-anim--2">Franchise Application</h1>
+        <p class="app-hero-subtitle app-hero-anim app-hero-anim--3">
+          Apply to become an AIM Franchise Partner
+        </p>
+        <p class="app-hero-lead app-hero-anim app-hero-anim--4">
+          Complete this guided application in five simple steps. We only ask for essential details so
+          you can apply quickly and confidently.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="app-main">
+    <div class="container">
+      <div class="success-box" *ngIf="applicationNotice">
+        <span class="material-icons" aria-hidden="true">
+          {{ isRegistrationFeePaid ? 'task_alt' : 'info' }}
+        </span>
+        <div>
+          <h3>{{ isRegistrationFeePaid ? 'Application Completed' : 'Application In Progress' }}</h3>
+          <p>{{ applicationNotice }}</p>
+        </div>
+      </div>
+
+      <div class="stepper-shell app-reveal">
+        <div class="stepper-head">
+          <div class="stepper-title">Application progress</div>
+          <div class="stepper-count">Step {{ currentStep }} of {{ steps.length }}</div>
+        </div>
+
+        <div class="stepper-track" aria-hidden="true">
+          <div class="stepper-progress" [style.width.%]="progressPercent"></div>
+        </div>
+
+        <ol class="stepper-list">
+          <li *ngFor="let step of steps" [class.active]="step.id === currentStep" [class.done]="step.id < currentStep">
+            <span class="step-dot">{{ step.id }}</span>
+            <span class="step-label">{{ step.title }}</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="form-shell app-reveal">
+        <form [formGroup]="form" (ngSubmit)="submitApplication()" novalidate>
+          <div class="step-panel" [attr.data-step]="currentStep">
+            <!-- STEP 1 -->
+            <section *ngIf="currentStep === 1">
+              <h2>Basic Information</h2>
+              <p class="step-desc">
+                Profile photo, identity, and your present address — aligned with KYC-style
+                onboarding (see platform documentation).
+              </p>
+
+              <div class="basic-info-layout">
+                <div
+                  class="profile-upload-section"
+                  [class.field-error-outline]="form.controls.profileImage.touched && form.controls.profileImage.invalid"
+                >
+                  <div class="profile-image-container">
+                    <ng-container *ngIf="!profileImagePreviewUrl">
+                      <button
+                        type="button"
+                        class="profile-upload-btn-circle"
+                        (click)="profileImageInput.click()"
+                        aria-label="Upload profile photo"
+                      >
+                        <span class="material-icons" aria-hidden="true">photo_camera</span>
+                        <span class="profile-upload-btn-text">Upload Photo</span>
+                      </button>
+                    </ng-container>
+                    <div *ngIf="profileImagePreviewUrl as src" class="profile-image-display">
+                      <img class="profile-img" [src]="src" alt="Profile preview" />
+                      <div class="profile-actions">
+                        <button
+                          type="button"
+                          class="btn-action btn-delete"
+                          (click)="clearProfileImage(profileImageInput)"
+                          aria-label="Remove profile photo"
+                        >
+                          <span class="material-icons" aria-hidden="true">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      #profileImageInput
+                      class="upload-input-screenreader"
+                      type="file"
+                      accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                      (change)="onProfileImageSelected($event)"
+                    />
+                  </div>
+                  <div class="upload-info">
+                    <div class="upload-title">Profile Image <span class="req">*</span></div>
+                    <div class="upload-subtitle">JPG / JPEG / PNG (Max 2MB)</div>
+                    <div class="upload-error" *ngIf="profileImageError">{{ profileImageError }}</div>
+                    <small class="error" *ngIf="form.controls.profileImage.touched && form.controls.profileImage.hasError('required')">
+                      Profile image is required.
+                    </small>
+                  </div>
+                </div>
+
+                <div class="basic-info-primary-grid field-grid">
+                  <div class="field">
+                    <label for="gender">Gender</label>
+                    <select id="gender" formControlName="gender">
+                      <option value="">Select gender</option>
+                      <option *ngFor="let g of genderOptions" [value]="g">{{ g }}</option>
+                    </select>
+                    <small class="error" *ngIf="form.controls.gender.touched && form.controls.gender.invalid">
+                      Please select a gender.
+                    </small>
+                  </div>
+
+                  <div class="field">
+                    <label for="dateOfBirth">Date of birth</label>
+                    <input
+                      id="dateOfBirth"
+                      type="date"
+                      formControlName="dateOfBirth"
+                      [max]="maxDob"
+                      autocomplete="bday"
+                    />
+                    <small class="error" *ngIf="form.controls.dateOfBirth.touched && form.controls.dateOfBirth.hasError('required')">
+                      Date of birth is required.
+                    </small>
+                    <small class="error" *ngIf="form.controls.dateOfBirth.touched && form.controls.dateOfBirth.hasError('invalidDate')">
+                      Enter a valid date.
+                    </small>
+                    <small class="error" *ngIf="form.controls.dateOfBirth.touched && form.controls.dateOfBirth.hasError('dobFuture')">
+                      Date of birth cannot be in the future.
+                    </small>
+                    <small class="error" *ngIf="form.controls.dateOfBirth.touched && form.controls.dateOfBirth.hasError('dobUnder18')">
+                      You must be at least 18 years old.
+                    </small>
+                    <small class="error" *ngIf="form.controls.dateOfBirth.touched && form.controls.dateOfBirth.hasError('dobUnrealistic')">
+                      Please enter a realistic date of birth.
+                    </small>
+                  </div>
+
+                  <div class="field field--full">
+                    <label for="fullName">Full name</label>
+                    <input id="fullName" type="text" formControlName="fullName" placeholder="Enter your full name" />
+                    <small class="error" *ngIf="form.controls.fullName.touched && form.controls.fullName.invalid">
+                      Full name is required (min 3 characters).
+                    </small>
+                  </div>
+
+                  <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" formControlName="email" placeholder="name@example.com" />
+                    <small class="error" *ngIf="form.controls.email.touched && form.controls.email.invalid">
+                      Enter a valid email address.
+                    </small>
+                  </div>
+
+                  <div class="field">
+                    <label for="mobile">Mobile number</label>
+                    <input id="mobile" type="tel" formControlName="mobile" placeholder="10-digit mobile number" />
+                    <small class="error" *ngIf="form.controls.mobile.touched && form.controls.mobile.invalid">
+                      Enter a valid 10-digit Indian mobile number.
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+              <h3 class="subsection-title">Present address</h3>
+              <p class="subsection-desc">
+                Start typing for Google Places suggestions (India). The map loads at your current location when you allow
+                location access; drag the pin or tap the map to adjust. Use the crosshairs to recentre on GPS.
+              </p>
+
+              <div class="present-address-layout">
+                <div class="present-address-fields field-grid">
+                  <div class="field field--full">
+                    <label for="presentArea">Select area / locality</label>
+                    <div class="area-search-row">
+                      <input
+                        #presentAreaInput
+                        id="presentArea"
+                        type="text"
+                        formControlName="presentArea"
+                        placeholder="Search area, locality, or address (Google Places)"
+                        autocomplete="off"
+                      />
+                      <button
+                        type="button"
+                        class="btn-locate"
+                        (click)="recenterOnMyLocation()"
+                        title="Use my current location"
+                        aria-label="Use my current location"
+                      >
+                        <span class="material-icons" aria-hidden="true">my_location</span>
+                      </button>
+                    </div>
+                    <small class="error" *ngIf="form.controls.presentArea.touched && form.controls.presentArea.invalid">
+                      Enter your area or locality (min 3 characters).
+                    </small>
+                  </div>
+
+                  <div class="field">
+                    <label for="presentDoorNo">Door / flat no.</label>
+                    <input
+                      id="presentDoorNo"
+                      type="text"
+                      formControlName="presentDoorNo"
+                      placeholder="e.g. 12-B"
+                      (input)="onPresentDoorInput($event)"
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label for="presentStreet">Street <span class="req">*</span></label>
+                    <input id="presentStreet" type="text" formControlName="presentStreet" placeholder="Street name" />
+                    <small class="error" *ngIf="form.controls.presentStreet.touched && form.controls.presentStreet.invalid">
+                      Street is required.
+                    </small>
+                  </div>
+
+                  <div class="field field--full">
+                    <label for="presentLandmark">Landmark (optional)</label>
+                    <input id="presentLandmark" type="text" formControlName="presentLandmark" placeholder="Nearby landmark" />
+                  </div>
+
+                  <div class="field">
+                    <label for="presentCountry">Country</label>
+                    <select id="presentCountry" formControlName="presentCountry">
+                      <option *ngFor="let c of countries" [value]="c.code">{{ c.name }}</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="presentState">State</label>
+                    <select id="presentState" formControlName="presentState">
+                      <option value="">Select state</option>
+                      <option *ngFor="let state of presentStates" [value]="state">{{ state }}</option>
+                    </select>
+                    <small class="error" *ngIf="form.controls.presentState.touched && form.controls.presentState.invalid">
+                      State is required.
+                    </small>
+                  </div>
+
+                  <div class="field">
+                    <label for="presentCity">City</label>
+                    <ng-select
+                      id="presentCity"
+                      formControlName="presentCity"
+                      [items]="presentCities"
+                      placeholder="Select city"
+                      [searchable]="true"
+                    ></ng-select>
+                    <small class="error" *ngIf="form.controls.presentCity.touched && form.controls.presentCity.invalid">
+                      City is required.
+                    </small>
+                  </div>
+
+                  <div class="field">
+                    <label for="presentPincode">Pincode</label>
+                    <input
+                      id="presentPincode"
+                      type="text"
+                      inputmode="numeric"
+                      maxlength="6"
+                      formControlName="presentPincode"
+                      placeholder="6-digit PIN"
+                      (input)="onPresentPincodeInput($event)"
+                    />
+                    <small class="error" *ngIf="form.controls.presentPincode.touched && form.controls.presentPincode.invalid">
+                      Enter a valid 6-digit pincode.
+                    </small>
+                  </div>
+                </div>
+
+                <aside class="map-aside" aria-label="Location map">
+                  <div class="map-aside-head">
+                    <span class="map-aside-title">Map</span>
+                    <span class="map-aside-hint" *ngIf="mapLoadState === 'ready'">Drag the pin or tap the map</span>
+                  </div>
+                  <div class="map-canvas-wrap">
+                    <div class="map-loading" *ngIf="mapLoadState === 'loading'">
+                      <span class="material-icons map-loading-icon" aria-hidden="true">hourglass_empty</span>
+                      <span>Loading map and detecting location…</span>
+                    </div>
+                    <div #mapCanvas class="map-canvas" role="application"></div>
+                    <div class="map-fallback" *ngIf="mapLoadState === 'error'">
+                      <span class="material-icons" aria-hidden="true">map</span>
+                      <p>{{ mapErrorMessage }}</p>
+                      <p class="map-fallback-small">Enable Maps JavaScript API &amp; Places API for this key; restrict key by HTTP referrer.</p>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+
+              <h3 class="subsection-title">Identity details</h3>
+              <p class="subsection-desc">Government ID type, number, and scans (front + back, or single passport upload).</p>
+
+              <div class="identity-upload-section">
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="idType">Identity document <span class="req">*</span></label>
+                    <select id="idType" formControlName="idType">
+                      <option value="">Select document type</option>
+                      <option *ngFor="let opt of idTypeOptions" [value]="opt.value">{{ opt.label }}</option>
+                    </select>
+                    <small class="error" *ngIf="form.controls.idType.touched && form.controls.idType.invalid">
+                      Select your identity document type.
+                    </small>
+                  </div>
+
+                  <div class="field">
+                    <label for="idNumber">Identity number <span class="req">*</span></label>
+                    <input
+                      id="idNumber"
+                      type="text"
+                      formControlName="idNumber"
+                      [placeholder]="getIdentityPlaceholder()"
+                      [maxlength]="getIdentityMaxLength()"
+                      (input)="formatIdentityInput($event)"
+                      autocomplete="off"
+                    />
+                    <small class="error" *ngIf="form.controls.idNumber.touched && form.controls.idNumber.hasError('required')">
+                      Identity number is required.
+                    </small>
+                    <small class="error" *ngIf="form.controls.idNumber.touched && form.controls.idNumber.hasError('idInvalid')">
+                      Enter a valid number for the selected document type.
+                    </small>
+                  </div>
+                </div>
+
+                <div class="identity-file-error" *ngIf="identityFileError">{{ identityFileError }}</div>
+
+                <div *ngIf="form.controls.idType.value && !isPassportIdentity" class="identity-upload-grid-horizontal">
+                  <div class="identity-upload-item-horizontal">
+                    <div class="identity-upload-title-compact">Front side <span class="req">*</span></div>
+                    <div class="identity-upload-stack">
+                      <label class="identity-upload-tile" [class.identity-upload-tile--filled]="!!identityFrontFileName">
+                        <ng-container *ngIf="!identityFrontFileName; else identityFrontFilled">
+                          <span class="material-icons" aria-hidden="true">add_a_photo</span>
+                          <span class="identity-upload-tile-label">Upload</span>
+                        </ng-container>
+                        <ng-template #identityFrontFilled>
+                          <ng-container *ngIf="identityFrontPreviewUrl as fsrc; else identityFrontPdf">
+                            <div class="identity-thumb-inline">
+                              <img [src]="fsrc" alt="Identity front preview" />
+                            </div>
+                          </ng-container>
+                          <ng-template #identityFrontPdf>
+                            <div class="identity-pdf-chip">
+                              <span class="material-icons" aria-hidden="true">picture_as_pdf</span>
+                              <span>PDF</span>
+                            </div>
+                          </ng-template>
+                          <button
+                            type="button"
+                            class="identity-remove-btn"
+                            (click)="$event.preventDefault(); $event.stopPropagation(); clearIdentityFile('front')"
+                            aria-label="Remove front identity file"
+                          >
+                            <span class="material-icons" aria-hidden="true">close</span>
+                          </button>
+                        </ng-template>
+                        <input
+                          #identityFrontInput
+                          type="file"
+                          accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                          (change)="onIdentityFileSelected($event, 'front')"
+                        />
+                      </label>
+                      <div class="identity-file-name-compact" *ngIf="identityFrontFileName">{{ identityFrontFileName }}</div>
+                    </div>
+                    <small class="error" *ngIf="form.controls.identityFront.touched && form.controls.identityFront.invalid">
+                      Front image or PDF is required.
+                    </small>
+                  </div>
+
+                  <div class="identity-upload-item-horizontal">
+                    <div class="identity-upload-title-compact">Back side <span class="req">*</span></div>
+                    <div class="identity-upload-stack">
+                      <label class="identity-upload-tile" [class.identity-upload-tile--filled]="!!identityBackFileName">
+                        <ng-container *ngIf="!identityBackFileName; else identityBackFilled">
+                          <span class="material-icons" aria-hidden="true">add_a_photo</span>
+                          <span class="identity-upload-tile-label">Upload</span>
+                        </ng-container>
+                        <ng-template #identityBackFilled>
+                          <ng-container *ngIf="identityBackPreviewUrl as bsrc; else identityBackPdf">
+                            <div class="identity-thumb-inline">
+                              <img [src]="bsrc" alt="Identity back preview" />
+                            </div>
+                          </ng-container>
+                          <ng-template #identityBackPdf>
+                            <div class="identity-pdf-chip">
+                              <span class="material-icons" aria-hidden="true">picture_as_pdf</span>
+                              <span>PDF</span>
+                            </div>
+                          </ng-template>
+                          <button
+                            type="button"
+                            class="identity-remove-btn"
+                            (click)="$event.preventDefault(); $event.stopPropagation(); clearIdentityFile('back')"
+                            aria-label="Remove back identity file"
+                          >
+                            <span class="material-icons" aria-hidden="true">close</span>
+                          </button>
+                        </ng-template>
+                        <input
+                          #identityBackInput
+                          type="file"
+                          accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                          (change)="onIdentityFileSelected($event, 'back')"
+                        />
+                      </label>
+                      <div class="identity-file-name-compact" *ngIf="identityBackFileName">{{ identityBackFileName }}</div>
+                    </div>
+                    <small class="error" *ngIf="form.controls.identityBack.touched && form.controls.identityBack.invalid">
+                      Back image or PDF is required.
+                    </small>
+                  </div>
+                </div>
+
+                <div *ngIf="form.controls.idType.value && isPassportIdentity" class="identity-upload-grid-horizontal single-upload">
+                  <div class="identity-upload-item-horizontal">
+                    <div class="identity-upload-title-compact">Passport (photo page) <span class="req">*</span></div>
+                    <div class="identity-upload-stack">
+                      <label class="identity-upload-tile" [class.identity-upload-tile--filled]="!!identityPassportFileName">
+                        <ng-container *ngIf="!identityPassportFileName; else identityPassportFilled">
+                          <span class="material-icons" aria-hidden="true">add_a_photo</span>
+                          <span class="identity-upload-tile-label">Upload</span>
+                        </ng-container>
+                        <ng-template #identityPassportFilled>
+                          <ng-container *ngIf="identityPassportPreviewUrl as psrc; else identityPassportPdf">
+                            <div class="identity-thumb-inline">
+                              <img [src]="psrc" alt="Passport preview" />
+                            </div>
+                          </ng-container>
+                          <ng-template #identityPassportPdf>
+                            <div class="identity-pdf-chip">
+                              <span class="material-icons" aria-hidden="true">picture_as_pdf</span>
+                              <span>PDF</span>
+                            </div>
+                          </ng-template>
+                          <button
+                            type="button"
+                            class="identity-remove-btn"
+                            (click)="$event.preventDefault(); $event.stopPropagation(); clearIdentityFile('passport')"
+                            aria-label="Remove passport file"
+                          >
+                            <span class="material-icons" aria-hidden="true">close</span>
+                          </button>
+                        </ng-template>
+                        <input
+                          #identityPassportInput
+                          type="file"
+                          accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                          (change)="onIdentityFileSelected($event, 'passport')"
+                        />
+                      </label>
+                      <div class="identity-file-name-compact" *ngIf="identityPassportFileName">{{ identityPassportFileName }}</div>
+                    </div>
+                    <small class="error" *ngIf="form.controls.identityPassport.touched && form.controls.identityPassport.invalid">
+                      Passport scan is required.
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+            </section>
+
+            <!-- STEP 2 -->
+            <section *ngIf="currentStep === 2">
+              <h2>Company Information</h2>
+              <p class="step-desc">Company details and company address (same as personal address supported).</p>
+
+              <div class="field-grid">
+                <div class="field">
+                  <label for="companyName">Company / Franchise name</label>
+                  <input id="companyName" type="text" formControlName="companyName" placeholder="Enter company name" />
+                  <small class="error" *ngIf="form.controls.companyName.touched && form.controls.companyName.invalid">
+                    Company name is required.
+                  </small>
+                </div>
+
+                <div class="field">
+                  <label for="companyemail">Company email</label>
+                  <input id="companyemail" type="email" formControlName="companyemail" placeholder="name@company.com" />
+                  <small class="error" *ngIf="form.controls.companyemail.touched && form.controls.companyemail.invalid">
+                    Enter a valid company email.
+                  </small>
+                </div>
+
+                <div class="field">
+                  <label for="companymobile_number">Company mobile number</label>
+                  <input
+                    id="companymobile_number"
+                    type="tel"
+                    formControlName="companymobile_number"
+                    inputmode="numeric"
+                    maxlength="10"
+                    placeholder="10-digit mobile number"
+                  />
+                  <small
+                    class="error"
+                    *ngIf="
+                      form.controls.companymobile_number.touched && form.controls.companymobile_number.invalid
+                    "
+                  >
+                    Enter a valid 10-digit company mobile number.
+                  </small>
+                </div>
+
+                <div class="field">
+                  <label for="businessWebsite">Business website (optional)</label>
+                  <input id="businessWebsite" type="url" formControlName="businessWebsite" placeholder="https://example.com" />
+                </div>
+
+                <div class="field field--full">
+                  <label for="businessStructure">Business structure</label>
+                  <select id="businessStructure" formControlName="businessStructure">
+                    <option value="">Select structure</option>
+                    <option *ngFor="let s of businessStructureOptions" [value]="s">{{ s }}</option>
+                  </select>
+                  <small class="error" *ngIf="form.controls.businessStructure.touched && form.controls.businessStructure.invalid">
+                    Business structure is required.
+                  </small>
+                </div>
+
+                <div class="field field--full">
+                  <label>Company address</label>
+                  <div class="company-same-address">
+                    <label class="radio-pill">
+                      <input type="radio" formControlName="companySameAddress" value="Yes" />
+                      Same as personal address
+                    </label>
+                    <label class="radio-pill">
+                      <input type="radio" formControlName="companySameAddress" value="No" />
+                      Different address
+                    </label>
+                  </div>
+                </div>
+
+                <div class="field field--full">
+                  <label for="companyArea">Select area / locality</label>
+                  <input id="companyArea" type="text" formControlName="companyArea" placeholder="Enter area / locality" />
+                  <small class="error" *ngIf="form.controls.companyArea.touched && form.controls.companyArea.invalid">
+                    Company area is required.
+                  </small>
+                </div>
+
+                <div class="field">
+                  <label for="companyDoorNo">Door / flat no.</label>
+                  <input id="companyDoorNo" type="text" formControlName="companyDoorNo" placeholder="e.g. 12-B" />
+                </div>
+
+                <div class="field">
+                  <label for="companyStreet">Street <span class="req">*</span></label>
+                  <input id="companyStreet" type="text" formControlName="companyStreet" placeholder="Street name" />
+                  <small class="error" *ngIf="form.controls.companyStreet.touched && form.controls.companyStreet.invalid">
+                    Company street is required.
+                  </small>
+                </div>
+
+                <div class="field field--full">
+                  <label for="companyLandmark">Landmark (optional)</label>
+                  <input id="companyLandmark" type="text" formControlName="companyLandmark" placeholder="Nearby landmark" />
+                </div>
+
+                <div class="field">
+                  <label for="companyCountry">Country</label>
+                  <select id="companyCountry" formControlName="companyCountry">
+                    <option *ngFor="let c of countries" [value]="c.code">{{ c.name }}</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="companyState">State</label>
+                  <select id="companyState" formControlName="companyState">
+                    <option value="">Select state</option>
+                    <option *ngFor="let st of presentStates" [value]="st">{{ st }}</option>
+                  </select>
+                  <small class="error" *ngIf="form.controls.companyState.touched && form.controls.companyState.invalid">
+                    Company state is required.
+                  </small>
+                </div>
+
+                <div class="field">
+                  <label for="companyCity">City</label>
+                  <ng-select
+                    id="companyCity"
+                    formControlName="companyCity"
+                    [items]="companyCities"
+                    placeholder="Select city"
+                    [searchable]="true"
+                  ></ng-select>
+                  <small class="error" *ngIf="form.controls.companyCity.touched && form.controls.companyCity.invalid">
+                    Company city is required.
+                  </small>
+                </div>
+
+                <div class="field">
+                  <label for="companyPincode">Pincode</label>
+                  <input
+                    id="companyPincode"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="6"
+                    formControlName="companyPincode"
+                    placeholder="6-digit PIN"
+                  />
+                  <small class="error" *ngIf="form.controls.companyPincode.touched && form.controls.companyPincode.invalid">
+                    Enter a valid 6-digit company pincode.
+                  </small>
+                </div>
+              </div>
+            </section>
+
+            <!-- STEP 3 -->
+            <section *ngIf="currentStep === 3">
+              <h2>Experience & Background</h2>
+              <p class="step-desc">Help us understand your operating background.</p>
+
+              <div class="field-grid">
+                <div class="field">
+                  <label for="workExperience">Work experience</label>
+                  <select id="workExperience" formControlName="workExperience">
+                    <option value="">Select experience range</option>
+                    <option *ngFor="let item of experienceOptions" [value]="item">{{ item }}</option>
+                  </select>
+                  <small class="error" *ngIf="form.controls.workExperience.touched && form.controls.workExperience.invalid">
+                    Work experience is required.
+                  </small>
+                </div>
+
+                <div class="field">
+                  <label for="healthcareExperience">Healthcare / medical experience</label>
+                  <select id="healthcareExperience" formControlName="healthcareExperience">
+                    <option value="">Select option</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                  <small class="error" *ngIf="form.controls.healthcareExperience.touched && form.controls.healthcareExperience.invalid">
+                    Please choose an option.
+                  </small>
+                </div>
+
+                <div class="field">
+                  <label for="salesExperience">Sales / business experience</label>
+                  <select id="salesExperience" formControlName="salesExperience">
+                    <option value="">Select option</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                  <small class="error" *ngIf="form.controls.salesExperience.touched && form.controls.salesExperience.invalid">
+                    Please choose an option.
+                  </small>
+                </div>
+
+                <div class="field field--full">
+                  <label for="backgroundNote">Short background note</label>
+                  <textarea
+                    id="backgroundNote"
+                    formControlName="backgroundNote"
+                    rows="4"
+                    placeholder="Summarize your experience and motivation..."
+                  ></textarea>
+                  <small class="error" *ngIf="form.controls.backgroundNote.touched && form.controls.backgroundNote.invalid">
+                    Add at least 12 characters.
+                  </small>
+                </div>
+              </div>
+            </section>
+
+            <!-- STEP 4 -->
+            <section *ngIf="currentStep === 4">
+              <h2>Terms & Conditions</h2>
+              <p class="step-desc">Please review and confirm the onboarding terms before continuing.</p>
+
+              <div class="review-card terms-card">
+                <div class="review-head">
+                  <h3>Dummy agreement (for demo)</h3>
+                  <span class="section-caption">Preview only</span>
+                </div>
+
+                <div class="terms-text">
+                  <p>
+                    By submitting this application, you confirm that the information provided is accurate and that you
+                    will follow AIM’s onboarding and bidding policies.
+                  </p>
+                  <p>
+                    You understand that zone bidding outcomes are determined by the auction rules and settlement
+                    policies, and any refundable components (if applicable) follow the same agreement terms.
+                  </p>
+                  <p>
+                    You agree to be contacted for verification and onboarding. Documents uploaded as part of this
+                    application are required for compliance checks.
+                  </p>
+                </div>
+
+                <div class="registration-fee-box">
+                  <h4>Registration fee</h4>
+                  <h5>Onboard &amp; bid for zones</h5>
+                  <p>
+                    Complete the franchise application and pay <strong>₹5,000 registration</strong>. <strong>₹4,000</strong> is
+                    refundable toward your <strong>first winning zone bid</strong>; <strong>₹1,000</strong> covers
+                    processing.
+                  </p>
+                  <p>
+                    Example: Zone base ₹2,50,000, current bid ₹2,55,000, minimum next bid ₹2,60,000
+                    (₹5,000 increments). Your ₹5,000 registration adjusts what you pay at settlement; the leaderboard
+                    still shows the full bid amount. If you do not win, refundable rules apply as per agreement.
+                  </p>
+                  <p>
+                    If you bid again on another zone after a refund scenario, you typically pay the full bid amount—
+                    adjustment applies on the first winning bid as per policy.
+                  </p>
+                </div>
+
+                <label class="terms-checkbox">
+                  <input type="checkbox" formControlName="acceptTerms" />
+                  <span>I confirm that I have read and accept the terms & conditions.</span>
+                </label>
+
+                <small
+                  class="error"
+                  *ngIf="form.controls.acceptTerms.touched && form.controls.acceptTerms.invalid"
+                >
+                  Please accept the terms to continue.
+                </small>
+              </div>
+            </section>
+
+            <!-- STEP 5 -->
+            <section *ngIf="currentStep === 5">
+              <h2>Review & Submit</h2>
+              <p class="step-desc">Review your details before final submission.</p>
+
+              <div class="review-card">
+                <div class="review-head">
+                  <h3>Application summary</h3>
+                  <button type="button" class="btn btn-link" (click)="editStep(1)">Edit</button>
+                </div>
+
+                <div class="review-grid">
+                  <div><strong>Profile image:</strong> {{ profileImageFileName || 'Not uploaded' }}</div>
+                  <div><strong>Gender:</strong> {{ form.value.gender }}</div>
+                  <div><strong>Date of birth:</strong> {{ form.value.dateOfBirth }}</div>
+                  <div><strong>Full name:</strong> {{ form.value.fullName }}</div>
+                  <div><strong>Email:</strong> {{ form.value.email }}</div>
+                  <div><strong>Mobile:</strong> {{ form.value.mobile }}</div>
+                  <div class="review-span-2"><strong>Present address — area:</strong> {{ form.value.presentArea }}</div>
+                  <div><strong>Present — door / street:</strong> {{ form.value.presentDoorNo || '—' }} / {{ form.value.presentStreet }}</div>
+                  <div><strong>Present — landmark:</strong> {{ form.value.presentLandmark || '—' }}</div>
+                  <div><strong>Present — city / state / PIN:</strong> {{ form.value.presentCity }}, {{ form.value.presentState }} {{ form.value.presentPincode }}</div>
+                  <div><strong>Present — country:</strong> {{ presentCountryLabel }}</div>
+                  <div><strong>Identity type:</strong> {{ idTypeReviewLabel }}</div>
+                  <div><strong>Identity number:</strong> {{ form.value.idNumber }}</div>
+                  <div><strong>Identity uploads:</strong> {{ identityReviewFilesLabel }}</div>
+                  <div><strong>Work experience:</strong> {{ form.value.workExperience }}</div>
+                  <div><strong>Healthcare experience:</strong> {{ form.value.healthcareExperience }}</div>
+                  <div><strong>Sales experience:</strong> {{ form.value.salesExperience }}</div>
+                  <div><strong>Company name:</strong> {{ form.value.companyName }}</div>
+                  <div><strong>Company email:</strong> {{ form.value.companyemail }}</div>
+                  <div><strong>Company mobile:</strong> {{ form.value.companymobile_number }}</div>
+                  <div><strong>Business website:</strong> {{ form.value.businessWebsite || '—' }}</div>
+                  <div><strong>Business structure:</strong> {{ form.value.businessStructure }}</div>
+                  <div class="review-span-2"><strong>Company address:</strong> {{ form.value.companyArea }}</div>
+                  <div><strong>Company door / street:</strong> {{ form.value.companyDoorNo || '—' }} / {{ form.value.companyStreet }}</div>
+                  <div><strong>Company landmark:</strong> {{ form.value.companyLandmark || '—' }}</div>
+                  <div><strong>Company city/state/PIN:</strong> {{ form.value.companyCity }}, {{ form.value.companyState }} {{ form.value.companyPincode }}</div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="previousStep()" [disabled]="currentStep === 1">
+              Back
+            </button>
+
+            <button
+              *ngIf="!isReviewStep"
+              type="button"
+              class="btn btn-primary"
+              (click)="nextStep()"
+              [disabled]="!canMoveNext"
+            >
+              Next
+            </button>
+
+            <button *ngIf="isReviewStep" type="submit" class="btn btn-primary" [disabled]="submitting">
+              {{ finalActionLabel }}
+            </button>
+          </div>
+
+          <p class="global-error" *ngIf="formAttempted && form.invalid && !submitError">
+            Please complete required fields before moving to the next step.
+          </p>
+
+          <p class="global-error" *ngIf="submitError" role="alert">
+            {{ submitError }}
+          </p>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>

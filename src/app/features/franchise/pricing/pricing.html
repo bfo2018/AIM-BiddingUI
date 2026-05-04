@@ -1,0 +1,651 @@
+<div #pageRoot class="investment-page">
+  <section class="inv-hero">
+    <div class="container inv-hero-inner">
+      <span aria-hidden="true" class="material-icons menu-icon hero-play-icon demo-reveal demo-reveal--hero-icon">
+        trending_up
+      </span>
+
+      <div class="hero-copy">
+        <p class="inv-hero-eyebrow inv-hero-anim inv-hero-anim--1">Investment &amp; earnings</p>
+        <h1 class="inv-hero-title inv-hero-anim inv-hero-anim--2">Investment &amp; Earnings</h1>
+        <p class="inv-hero-subtitle inv-hero-anim inv-hero-anim--3">
+          See what it costs to become an AIM Franchise Partner, how subscription and registration work, and how you
+          earn across seven healthcare services.
+        </p>
+        <p class="inv-hero-lead inv-hero-anim inv-hero-anim--4">
+          Franchise amount (with full or partial payment), duration-based AIM subscription, and a one-time registration
+          fee—plus a clear share of every appointment. Franchise amount represents the total of all won zone bid amounts
+          (single zone or multiple zones). Use the planner below to relate your spend today to estimated monthly
+          franchiser income and illustrative payback time.
+        </p>
+
+        <div class="inv-hero-badges inv-reveal">
+          <span class="tag-pill">{{ highlightTag }}</span>
+          <span class="mini-metric">
+            <span class="mini-label">Estimated pay today</span>
+            <span class="mini-value">{{ formatINR(animated.totalInvestedNow) }}</span>
+          </span>
+          <span class="mini-metric mini-metric--green">
+            <span class="mini-label">Est. monthly share</span>
+            <span class="mini-value">{{ formatINR(animated.monthlyProjection) }}</span>
+          </span>
+          <span class="mini-metric">
+            <span class="mini-label">Illustrative payback</span>
+            <span class="mini-value">{{ paybackLabel }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cost pillars: franchise, subscription, registration -->
+  <section class="inv-section inv-pillars" aria-labelledby="pillars-heading">
+    <div class="container">
+      <header class="inv-section-head inv-reveal">
+        <h2 id="pillars-heading">Where your investment goes</h2>
+        <p>
+          Franchise amount to operate, subscription to run on AIM, and registration to onboard and bid.
+        </p>
+      </header>
+
+      <div class="pillar-grid">
+        <article class="pillar-card pillar-card--primary inv-reveal" style="--stagger: 0">
+          <div class="pillar-kicker">1 · Franchise amount</div>
+          <h3>Become an AIM Franchise Partner</h3>
+          <p class="pillar-lead">
+            This is your franchise amount (for example ₹50,000, ₹1,50,000, or another agreed figure). It is derived
+            from the <strong>total won zone bid amount</strong> across one or multiple zones.
+          </p>
+          <ul class="pillar-list">
+            <li>
+              <span class="material-icons" aria-hidden="true">check_circle</span>
+              <span><strong>Full payment</strong> — pay 100% upfront and receive <strong>5% discount</strong> on the franchise amount.</span>
+            </li>
+            <li>
+              <span class="material-icons" aria-hidden="true">check_circle</span>
+              <span><strong>Partial payment</strong> — no discount. Pay <strong>50% now</strong> and the <strong>remaining 50% within 2 months</strong>.</span>
+            </li>
+          </ul>
+          <div class="pillar-example">
+            <div class="pillar-example-title">Example</div>
+            <p>Total franchise amount: <strong>{{ formatINR(50000) }}</strong></p>
+            <p>Initial payment (50%): <strong>{{ formatINR(25000) }}</strong></p>
+            <p>Remaining (50%, within 2 months): <strong>{{ formatINR(25000) }}</strong></p>
+          </div>
+        </article>
+
+        <article class="pillar-card inv-reveal" style="--stagger: 1">
+          <div class="pillar-kicker">2 · Subscription plans</div>
+          <h3>Use AIM to run your business</h3>
+          <p class="pillar-lead">
+            To operate on the AIM platform and earn through the system, you purchase a <strong>duration-based</strong>
+            subscription.
+          </p>
+          <div class="plan-mini-grid">
+            <div class="plan-mini">
+              <span class="material-icons" aria-hidden="true">calendar_view_month</span>
+              <div><strong>Half year</strong> — 6 months · {{ formatINR(300) }}</div>
+            </div>
+            <div class="plan-mini">
+              <span class="material-icons" aria-hidden="true">event</span>
+              <div><strong>Yearly</strong> — 12 months · {{ formatINR(600) }}</div>
+            </div>
+            <div class="plan-mini">
+              <span class="material-icons" aria-hidden="true">date_range</span>
+              <div><strong>2 year plan</strong> — 2 years · {{ formatINR(1200) }}</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="pillar-card pillar-card--accent inv-reveal" style="--stagger: 2">
+          <div class="pillar-kicker">3 · Registration fee</div>
+          <h3>Onboard &amp; bid for zones</h3>
+          <p class="pillar-lead">
+            Complete the franchise application and pay <strong>{{ formatINR(registrationFee) }}</strong> registration.
+            <strong>{{ formatINR(registrationRefundable) }}</strong> is refundable toward your <strong>first winning zone bid</strong>;
+            <strong>{{ formatINR(registrationNonRefundable) }}</strong> covers processing.
+          </p>
+          <div class="pillar-callout">
+            <p>
+              <strong>Example:</strong> Zone base {{ formatINR(50000) }}, current bid {{ formatINR(55000) }}, minimum next bid
+              {{ formatINR(60000) }} (₹5,000 increments). Your ₹5,000 registration adjusts what you pay at settlement;
+              the leaderboard still shows the full bid amount. If you do not win, refundable rules apply as per agreement.
+            </p>
+            <p class="pillar-note">
+              If you bid again on another zone after a refund scenario, you typically pay the full bid amount—adjustment
+              applies on the first winning bid as per policy.
+            </p>
+          </div>
+        </article>
+      </div>
+
+      <article class="franchise-logic-block inv-reveal" style="--stagger: 3">
+        <div class="pillar-kicker">Franchise amount logic</div>
+        <h3>How franchise amount is determined</h3>
+        <p class="pillar-lead">
+          Franchise amount is not a separate extra charge. It is the <strong>sum of all zones you win</strong> in
+          bidding (single zone or multiple zones).
+        </p>
+        <ul class="pillar-list">
+          <li>
+            <span class="material-icons" aria-hidden="true">check_circle</span>
+            <span>If you win one zone, franchise amount equals that won zone bid amount.</span>
+          </li>
+          <li>
+            <span class="material-icons" aria-hidden="true">check_circle</span>
+            <span>If you win multiple zones, franchise amount equals the total of all won zone bid amounts.</span>
+          </li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- Earnings: 7 services + revenue split -->
+  <section class="inv-section inv-model" aria-labelledby="model-heading">
+    <div class="container">
+      <header class="inv-section-head inv-reveal">
+        <h2 id="model-heading">How you earn — seven services</h2>
+        <p>
+          Earnings come from completed appointments across AIM services. Revenue is shared as a percentage between
+          <strong>company</strong>, <strong>you (franchiser)</strong>, and the <strong>service provider</strong> (doctor,
+          nurse, hospital, ambulance, etc.). Illustrative split below (5% / 10% / 85%)—actual percentages may vary by
+          service type and agreement.
+        </p>
+      </header>
+
+      <div class="split-legend inv-reveal">
+        <span><i class="split-dot split-dot--company"></i> Company</span>
+        <span><i class="split-dot split-dot--you"></i> Franchiser</span>
+        <span><i class="split-dot split-dot--provider"></i> Service provider</span>
+        <span class="split-sample">Sample: 5% · 10% · 85%</span>
+      </div>
+
+      <div class="service-earn-grid">
+        <article
+          *ngFor="let s of earningServices; let i = index"
+          class="service-earn-card inv-reveal"
+          [style.--stagger]="i"
+        >
+          <div class="service-earn-head">
+            <span class="material-icons service-earn-icon" aria-hidden="true">{{ s.icon }}</span>
+            <div>
+              <h3 class="service-earn-title">{{ s.name }}</h3>
+              <p class="service-earn-desc">{{ s.blurb }}</p>
+            </div>
+          </div>
+          <div class="split-bar" aria-hidden="true">
+            <span class="split-fill split-fill--company" [style.width.%]="s.companyPct"></span>
+            <span class="split-fill split-fill--you" [style.width.%]="s.franchiserPct"></span>
+            <span class="split-fill split-fill--provider" [style.width.%]="s.providerPct"></span>
+          </div>
+          <div class="split-pcts">
+            <span>Company {{ s.companyPct }}%</span>
+            <span>You {{ s.franchiserPct }}%</span>
+            <span>Provider {{ s.providerPct }}%</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Monthly projection + investment planner -->
+  <section class="inv-section inv-projection" aria-labelledby="projection-heading">
+    <div class="container">
+      <header class="inv-section-head inv-reveal">
+        <h2 id="projection-heading">Monthly earnings planner</h2>
+        <p>
+          Set your franchise amount and payment choice, pick a subscription, then tune each service’s daily volume and
+          your average franchiser earning per appointment. We estimate your monthly franchiser share and an illustrative
+          payback horizon on what you pay today.
+        </p>
+      </header>
+
+      <div class="projection-shell projection-shell--premium inv-reveal">
+        <div class="planner-top">
+          <div class="invest-panel">
+            <h4 class="panel-title">What you’re paying today (planner)</h4>
+            <div class="partnership-block">
+              <label class="field-label" for="partnershipRange">Franchise amount</label>
+              <div class="partnership-amount-row">
+                <input
+                  id="partnershipRange"
+                  class="calc-input"
+                  type="range"
+                  [min]="partnershipAmountMin"
+                  [max]="partnershipAmountMax"
+                  [step]="partnershipAmountStep"
+                  [(ngModel)]="partnershipAmount"
+                  (ngModelChange)="onPartnershipSliderChange()"
+                  aria-label="Franchise amount"
+                />
+                <input
+                  class="calc-input calc-input--number calc-input--wide"
+                  type="number"
+                  [min]="partnershipAmountMin"
+                  [max]="partnershipAmountMax"
+                  [(ngModel)]="partnershipAmount"
+                  (ngModelChange)="onPartnershipAmountChange()"
+                  aria-label="Franchise amount value"
+                />
+              </div>
+              <div class="payment-toggle">
+                <button
+                  type="button"
+                  class="toggle-btn"
+                  [class.toggle-btn--active]="partnershipPaymentMode === 'full'"
+                  (click)="setPartnershipMode('full')"
+                >
+                  Full payment
+                  <span class="toggle-hint">5% off</span>
+                </button>
+                <button
+                  type="button"
+                  class="toggle-btn"
+                  [class.toggle-btn--active]="partnershipPaymentMode === 'partial'"
+                  (click)="setPartnershipMode('partial')"
+                >
+                  Partial (50% + 50%)
+                </button>
+              </div>
+              <p class="panel-footnote">
+                Pay today:
+                <strong>{{ formatINR(partnershipPayableNow) }}</strong>
+                <span *ngIf="partnershipPaymentMode === 'partial'">
+                  · Remaining franchise: <strong>{{ formatINR(partnershipRemainingLater) }}</strong> (within 2 months)
+                </span>
+              </p>
+            </div>
+
+            <div class="subscription-pick">
+              <span class="field-label">AIM subscription</span>
+              <div class="plan-select-row">
+                <button
+                  type="button"
+                  *ngFor="let p of subscriptionPlans"
+                  class="plan-select-card"
+                  [class.plan-select-card--active]="selectedSubscriptionId === p.id"
+                  (click)="selectSubscription(p.id)"
+                >
+                  <span class="material-icons" aria-hidden="true">{{ p.icon }}</span>
+                  <span class="plan-select-name">{{ p.label }}</span>
+                  <span class="plan-select-meta">{{ p.durationLabel }}</span>
+                  <span class="plan-select-price">{{ formatINR(p.price) }}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="reg-line">
+              <span class="material-icons" aria-hidden="true">app_registration</span>
+              <div>
+                <strong>Registration</strong> {{ formatINR(registrationFee) }}
+                <span class="reg-sub">({{ formatINR(registrationRefundable) }} refundable toward first winning bid, per policy)</span>
+              </div>
+            </div>
+
+            <div class="zone-invest-block">
+              <span class="field-label">Franchise amount details</span>
+              <p class="zone-invest-lead">
+                Franchise amount equals the total won zone bid amount. Do not add zone purchase separately in this planner.
+              </p>
+            </div>
+
+            <div class="total-today-card">
+              <span>Total estimated pay today</span>
+              <strong>{{ formatINR(totalInvestedNow) }}</strong>
+            </div>
+          </div>
+
+          <div class="planner-services">
+            <div class="formula-card formula-card--nested">
+              <div class="appt-breakup-head">
+                <h4>Single appointment breakup</h4>
+              </div>
+              <div class="appt-breakup-split">
+                <div class="appt-breakup-col appt-breakup-col--fees">
+                  <h5 class="appt-col-title">Appointment fee breakdown</h5>
+                  <div class="fee-stack">
+                    <div class="fee-line fee-line--input">
+                      <span class="fee-line-label">Doctor Consultation Fee</span>
+                      <span class="fee-line-value">
+                        <input
+                          type="number"
+                          class="calc-input calc-input--number fee-line-input"
+                          min="0"
+                          [(ngModel)]="doctorFee"
+                          (ngModelChange)="onAppointmentSplitChange()"
+                          aria-label="Doctor consultation fee in rupees"
+                        />
+                      </span>
+                    </div>
+                    <div class="fee-line">
+                      <span class="fee-line-label">Platform Fee (10%)</span>
+                      <strong class="fee-line-amt">{{ formatINR(platformFee) }}</strong>
+                    </div>
+                    <div class="fee-line">
+                      <span class="fee-line-label">GST (18% on platform fee)</span>
+                      <strong class="fee-line-amt">{{ formatINR(gstFee) }}</strong>
+                    </div>
+                    <div class="fee-rule" aria-hidden="true"></div>
+                    <div class="fee-line fee-line--total">
+                      <span class="fee-line-label">Total appointment fee</span>
+                      <strong class="fee-line-amt">{{ formatINR(totalAppointmentFee) }}</strong>
+                    </div>
+                  </div>
+                </div>
+                <div class="appt-breakup-col appt-breakup-col--dist">
+                  <h5 class="appt-col-title">Amount distribution</h5>
+                  <div class="fee-stack">
+                    <div class="fee-line">
+                      <span class="fee-line-label">Doctor receives</span>
+                      <strong class="fee-line-amt">{{ formatINR(doctorFee) }}</strong>
+                    </div>
+                    <div class="fee-line">
+                      <span class="fee-line-label">GST receives</span>
+                      <strong class="fee-line-amt">{{ formatINR(gstFee) }}</strong>
+                    </div>
+                    <div class="fee-line">
+                      <span class="fee-line-label">Platform fee pool</span>
+                      <strong class="fee-line-amt">{{ formatINR(platformFee) }}</strong>
+                    </div>
+                    <p class="appt-dist-hint">
+                      From this, estimated payment charges (only when <strong>Pay online</strong> is selected) and
+                      (audio/video) call charges are deducted service-wise.
+                    </p>
+                  </div>
+                </div>
+                <div class="appt-breakup-col appt-breakup-col--controls">
+                  <h5 class="appt-col-title">Deductions &amp; remaining split (audio/video)</h5>
+                  <div class="appt-controls-split">
+                    <div class="appt-controls-col appt-controls-col--left">
+                      <div class="fee-stack">
+                        <div class="appt-field-block">
+                          <span class="spf-label">Payment mode</span>
+                          <div class="payout-radios" role="radiogroup" aria-label="Payment mode">
+                            <label class="payout-radio">
+                              <input
+                                type="radio"
+                                name="payoutModeAppt"
+                                [checked]="payoutMode === 'online'"
+                                (change)="setPayoutMode('online')"
+                              />
+                              <span>Pay online</span>
+                            </label>
+                            <label class="payout-radio">
+                              <input
+                                type="radio"
+                                name="payoutModeAppt"
+                                [checked]="payoutMode === 'wallet'"
+                                (change)="setPayoutMode('wallet')"
+                              />
+                              <span>Wallet</span>
+                            </label>
+                          </div>
+                          <small *ngIf="payoutMode === 'online'" class="payout-radio-hint">
+                            Est. PG {{ effectivePaymentGatewayPct }}% of total =
+                            {{ formatINR(paymentGatewayChargePerAppointment) }} (card / online).
+                          </small>
+                          <small *ngIf="payoutMode === 'wallet'" class="payout-radio-hint">
+                            No card gateway fee in this estimate (₹0). Adjust if your contract adds a wallet charge.
+                          </small>
+                        </div>
+                        <div class="appt-field-block">
+                          <span class="spf-label">Audio &amp; video avg call duration (min)</span>
+                          <div class="appt-inline-field">
+                            <input
+                              type="number"
+                              class="calc-input calc-input--number"
+                              min="0"
+                              [(ngModel)]="avgAvCallMinutes"
+                              (ngModelChange)="onAppointmentSplitChange()"
+                              aria-label="Average audio and video call duration in minutes"
+                            />
+                          </div>
+                          <small class="payout-radio-hint">
+                            Est. third-party call cost (audio &amp; video):
+                            {{ formatINR(avCallThirdPartyChargePerAppointment) }}/appointment.
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="appt-controls-col appt-controls-col--right">
+                      <div class="fee-stack">
+                        <div class="fee-line fee-line--total fee-line--remaining">
+                          <span class="fee-line-label">Remaining amount</span>
+                          <strong class="fee-line-amt">{{ formatINR(illustrativeAvNetPlatformPool) }}</strong>
+                        </div>
+                        <p class="appt-split-note formula-muted">
+                          Then remaining amount is split to franchiser <strong>{{ franchiserSharePct }}%</strong> and company
+                          <strong>{{ companySharePct }}%</strong>.
+                        </p>
+                        <div class="fee-split-dual">
+                          <div class="fee-split-cell">
+                            <span class="fee-split-label">Franchise ({{ franchiserSharePct }}%)</span>
+                            <strong class="fee-split-amt">{{ formatINR1(illustrativeAvFranchiserFromPool) }}</strong>
+                          </div>
+                          <div class="fee-split-cell">
+                            <span class="fee-split-label">Company ({{ companySharePct }}%)</span>
+                            <strong class="fee-split-amt">{{ formatINR1(illustrativeAvCompanyFromPool) }}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="formula-text formula-muted appt-footnote-personal">
+                <strong>Personal Consultation is separate:</strong> ₹1 per completed session token, then split
+                {{ franchiserSharePct }}% / {{ companySharePct }}%.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="planner-service-block">
+          <div class="service-planner-head">
+            <h4>Per-service inputs</h4>
+          </div>
+          <div class="service-planner-list">
+            <div *ngFor="let row of serviceRows; let i = index" class="service-planner-row inv-reveal" [style.--stagger]="i % 4">
+              <div class="service-planner-id">
+                <div class="service-planner-title">
+                  <span class="material-icons" aria-hidden="true">{{ row.icon }}</span>
+                  <span class="service-planner-name">{{ row.name }}</span>
+                </div>
+                <div class="spf-total">
+                  <span class="spf-total-label">Daily</span>
+                  <span class="spf-total-hint">({{ row.perDay }} x {{ formatINR(getRowFranchiserEarning(row)) }})</span>
+                  &nbsp;<strong>{{ formatINR(serviceDailySubtotal(row)) }}</strong>
+                </div>
+              </div>
+              <div class="service-planner-fields">
+                <div class="spf">
+                  <span class="spf-label">{{ getRowUnitLabel(row) }}</span>
+                  <div class="spf-controls">
+                    <input
+                      type="range"
+                      class="calc-input"
+                      [min]="row.perDayMin"
+                      [max]="row.perDayMax"
+                      step="1"
+                      [(ngModel)]="row.perDay"
+                      (ngModelChange)="onServiceRowChange()"
+                      [attr.aria-label]="row.name + ' per day'"
+                    />
+                    <input
+                      type="number"
+                      class="calc-input calc-input--number"
+                      [min]="row.perDayMin"
+                      [max]="row.perDayMax"
+                      [(ngModel)]="row.perDay"
+                      (ngModelChange)="onServiceRowChange()"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="planner-results">
+          <div class="planner-results-head">
+            <span class="material-icons" aria-hidden="true">insights</span>
+            <div>
+              <h4>Your results</h4>
+              <p>Working days, estimated monthly franchiser share, and illustrative payback on what you pay today.</p>
+            </div>
+          </div>
+          <div class="planner-side">
+            <div class="working-days-card">
+              <label class="field-label" for="wdRange">Working days / month</label>
+              <div class="calc-row calc-row--flush">
+                <input
+                  id="wdRange"
+                  class="calc-input"
+                  type="range"
+                  min="1"
+                  max="31"
+                  step="1"
+                  [(ngModel)]="workingDaysPerMonth"
+                  (ngModelChange)="onWorkingDaysChange()"
+                  aria-label="Working days per month"
+                />
+                <input
+                  class="calc-input calc-input--number"
+                  type="number"
+                  min="1"
+                  max="31"
+                  [(ngModel)]="workingDaysPerMonth"
+                  (ngModelChange)="onWorkingDaysChange()"
+                  aria-label="Working days value"
+                />
+              </div>
+            </div>
+
+            <div class="result-card result-card--planner">
+              <div class="result-kicker">Estimated monthly franchiser share</div>
+              <div class="result-value">{{ formatINR(animated.monthlyProjection) }}</div>
+              <div class="result-sub">Sum of (appointments/day × avg franchiser ₹) × working days, all services combined.</div>
+            </div>
+
+            <div class="payback-card">
+              <span class="material-icons" aria-hidden="true">schedule</span>
+              <div>
+                <div class="payback-label">Illustrative payback of “pay today”</div>
+                <div class="payback-value">{{ paybackLabel }}</div>
+                <p class="payback-note">
+                  Pay today (including franchise, subscription, and registration) ÷ estimated monthly share. Does not
+                  include any future franchise instalments or operating costs—use as a
+                  directional guide only.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="inv-section inv-zone" aria-labelledby="zone-heading">
+    <div class="container">
+      <header class="inv-section-head inv-reveal">
+        <h2 id="zone-heading">Zones, bidding &amp; your earnings</h2>
+        <p>AIM is zone-based: you grow income from the geography you are allocated after a successful bid.</p>
+      </header>
+
+      <div class="driver-grid">
+        <article *ngFor="let d of zoneDrivers; let i = index" class="driver-card inv-reveal" [style.--stagger]="i">
+          <span class="material-icons driver-icon" aria-hidden="true">{{ d.icon }}</span>
+          <h3>{{ d.title }}</h3>
+          <p>{{ d.description }}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="inv-section inv-roi" aria-labelledby="roi-heading">
+    <div class="container">
+      <header class="inv-section-head inv-reveal">
+        <h2 id="roi-heading">Growth &amp; clarity</h2>
+        <p>High-level signals—your detailed picture is in the planner above.</p>
+      </header>
+
+      <div class="roi-grid">
+        <article *ngFor="let r of roiMetrics; let i = index" class="roi-card inv-reveal" [style.--stagger]="i" [attr.data-tone]="r.tone">
+          <div class="roi-top">
+            <div class="roi-label">{{ r.label }}</div>
+            <div class="roi-value">{{ r.value }}</div>
+          </div>
+          <div class="roi-bar" aria-hidden="true">
+            <div class="roi-fill" [style.width.%]="r.percent"></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="inv-section inv-compare" aria-labelledby="compare-heading">
+    <div class="container">
+      <header class="inv-section-head inv-reveal">
+        <h2 id="compare-heading">Spend today vs estimated monthly share</h2>
+        <p>Quick comparison using your current planner selections.</p>
+      </header>
+
+      <div class="compare-shell inv-reveal">
+        <div class="compare-col">
+          <div class="compare-title">
+            <span class="material-icons" aria-hidden="true">south</span> Pay today (stack)
+          </div>
+          <div class="compare-list">
+            <div *ngFor="let item of expenseItems" class="compare-item compare-item--expense">
+              <span class="material-icons" aria-hidden="true">{{ item.icon }}</span>
+              <span class="compare-label">{{ item.label }}</span>
+              <span class="compare-amt">{{ formatINR(item.amount) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="compare-divider" aria-hidden="true"></div>
+
+        <div class="compare-col">
+          <div class="compare-title compare-title--green">
+            <span class="material-icons" aria-hidden="true">north</span> Estimated income
+          </div>
+          <div class="compare-list">
+            <div *ngFor="let item of earningItems" class="compare-item compare-item--earning">
+              <span class="material-icons" aria-hidden="true">{{ item.icon }}</span>
+              <span class="compare-label">{{ item.label }}</span>
+              <span class="compare-amt">{{ formatINR(item.amount) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="inv-section inv-profit" aria-labelledby="profit-heading">
+    <div class="container">
+      <header class="inv-section-head inv-reveal">
+        <h2 id="profit-heading">Why partners move forward</h2>
+        <p>Clear rules, multiple services, one platform.</p>
+      </header>
+
+      <div class="profit-grid">
+        <article *ngFor="let p of profitPoints; let i = index" class="profit-card inv-reveal" [style.--stagger]="i">
+          <span class="material-icons profit-icon" aria-hidden="true">{{ p.icon }}</span>
+          <h3>{{ p.title }}</h3>
+          <p>{{ p.blurb }}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="inv-cta inv-reveal" aria-labelledby="cta-heading">
+    <div class="container inv-cta-inner">
+      <div class="inv-cta-copy">
+        <h2 id="cta-heading">Become a valued AIM Franchise Partner</h2>
+        <p>Apply to start registration, choose your stack, and prepare for zone operations.</p>
+      </div>
+      <a routerLink="/franchise/franchise-application" class="btn-apply">Apply now</a>
+    </div>
+  </section>
+</div>

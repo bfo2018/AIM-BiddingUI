@@ -1,0 +1,84 @@
+<div class="login-page">
+  <div class="container login-shell">
+    <section class="auth-panel">
+      <div class="card login-card fade-in">
+        <div class="login-card-head">
+          <div class="login-logo-center">
+            <img class="login-logo-img" src="/assets/AIMLOGO.png" alt="AIM" width="72" height="72" />
+          </div>
+          <h2 class="login-heading">Admin sign in</h2>
+          <p class="login-subheading">Enter your admin mobile number and password to continue.</p>
+        </div>
+
+        <form [formGroup]="form" class="auth-form stack gap-lg" (ngSubmit)="onSubmit()" novalidate>
+          <div class="form-section">
+            <div class="section-heading">
+              <span class="section-step" aria-hidden="true">1</span>
+              <div class="section-heading-text">
+                <span class="section-title">Mobile number</span>
+                <span class="section-caption">India (+91) · 10 digits</span>
+              </div>
+            </div>
+
+            <div
+              class="phone-field"
+              [class.has-error]="form.get('mobile')?.touched && form.get('mobile')?.invalid"
+            >
+              <span class="phone-prefix" aria-hidden="true">+91</span>
+              <input
+                id="mobile"
+                class="form-control phone-input"
+                formControlName="mobile"
+                type="tel"
+                inputmode="numeric"
+                maxlength="10"
+                autocomplete="tel"
+                placeholder="98765 43210"
+              />
+            </div>
+            <p class="field-hint is-error" *ngIf="form.get('mobile')?.touched && form.get('mobile')?.invalid">
+              Enter a valid 10-digit mobile number.
+            </p>
+          </div>
+
+          <div class="form-section">
+            <div class="section-heading">
+              <span class="section-step" aria-hidden="true">2</span>
+              <div class="section-heading-text">
+                <span class="section-title">Password</span>
+                <span class="section-caption">Admin credentials</span>
+              </div>
+            </div>
+
+            <div
+              class="text-field"
+              [class.has-error]="form.get('password')?.touched && form.get('password')?.invalid"
+            >
+              <input
+                id="password"
+                class="form-control text-input"
+                formControlName="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Enter password"
+              />
+            </div>
+            <p
+              class="field-hint is-error"
+              *ngIf="form.get('password')?.touched && form.get('password')?.invalid"
+            >
+              Password is required.
+            </p>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" [disabled]="loading || form.invalid">
+            <span class="material-icons btn-leading" aria-hidden="true">lock_open</span>
+            {{ loading ? 'Signing in…' : 'Sign in' }}
+          </button>
+        </form>
+
+        <p *ngIf="error" class="alert-inline" role="alert">{{ error }}</p>
+      </div>
+    </section>
+  </div>
+</div>

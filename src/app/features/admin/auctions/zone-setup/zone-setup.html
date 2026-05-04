@@ -1,0 +1,405 @@
+<div class="zs-page">
+
+  <!-- Toolbar -->
+  <header class="page-toolbar">
+    <div class="page-toolbar-row page-toolbar-row--main">
+      <div class="page-toolbar-left">
+        <span class="material-icons page-toolbar-icon" aria-hidden="true">map</span>
+        <div class="page-toolbar-text">
+          <div class="page-breadcrumb">Admin / Auction Management / <strong class="page-toolbar-heading">Zone Selection &amp; Setup</strong></div>
+          <p class="page-toolbar-subtitle">Load zones by state and city (same APIs as franchise bidding). Search only filters the loaded list.</p>
+        </div>
+      </div>
+      <div class="page-toolbar-right">
+        <span class="zs-live-pill" [class.zs-live-pill--on]="liveConnected" title="Socket.IO bidding connection">
+          <span class="zs-live-dot" aria-hidden="true"></span>
+          {{ liveConnected ? 'Live' : 'Offline' }}
+        </span>
+        <span class="toolbar-badge">{{ filteredZones.length }} Zones</span>
+        <button type="button" class="toolbar-btn" (click)="clearFilters()" aria-label="Reset filters">
+          <span class="material-icons" aria-hidden="true">filter_alt_off</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filter Row -->
+  <section class="zs-filters">
+    <div class="zs-filter-group">
+      <label class="zs-filter-label" for="zs-state">State</label>
+      <ng-select
+        inputId="zs-state"
+        class="zs-ng-select"
+        [items]="stateOptions"
+        bindLabel="id"
+        bindValue="id"
+        [(ngModel)]="selectedState"
+        [ngModelOptions]="{ standalone: true }"
+        [searchable]="true"
+        [clearable]="true"
+        [loading]="statesLoading"
+        [disabled]="statesLoading"
+        placeholder="Search or select state"
+        [appendTo]="'body'"
+        [dropdownPosition]="'bottom'"
+        (ngModelChange)="onStateChange($event)"
+      >
+        <ng-template ng-label-tmp let-item="item">
+          <span class="zs-ng-opt-row">
+            <span class="material-icons zs-ng-opt-icon" aria-hidden="true">map</span>
+            <span>{{ item?.id }}</span>
+          </span>
+        </ng-template>
+        <ng-template ng-option-tmp let-item="item">
+          <span class="zs-ng-opt-row">
+            <span class="material-icons zs-ng-opt-icon" aria-hidden="true">map</span>
+            <span>{{ item.id }}</span>
+          </span>
+        </ng-template>
+      </ng-select>
+    </div>
+    <div class="zs-filter-group">
+      <label class="zs-filter-label" for="zs-city">City / District</label>
+      <ng-select
+        inputId="zs-city"
+        class="zs-ng-select"
+        [items]="cityOptions"
+        bindLabel="id"
+        bindValue="id"
+        [(ngModel)]="selectedCity"
+        [ngModelOptions]="{ standalone: true }"
+        [searchable]="true"
+        [clearable]="true"
+        [loading]="citiesLoading"
+        [disabled]="!selectedState || citiesLoading"
+        [placeholder]="selectedState ? 'Search or select city / district' : 'Choose state first'"
+        [appendTo]="'body'"
+        [dropdownPosition]="'bottom'"
+        (ngModelChange)="onCityChange($event)"
+      >
+        <ng-template ng-label-tmp let-item="item">
+          <span class="zs-ng-opt-row">
+            <span class="material-icons zs-ng-opt-icon" aria-hidden="true">location_city</span>
+            <span>{{ item?.id }}</span>
+          </span>
+        </ng-template>
+        <ng-template ng-option-tmp let-item="item">
+          <span class="zs-ng-opt-row">
+            <span class="material-icons zs-ng-opt-icon" aria-hidden="true">location_city</span>
+            <span>{{ item.id }}</span>
+          </span>
+        </ng-template>
+      </ng-select>
+    </div>
+    <div class="zs-filter-group zs-filter-search">
+      <label class="zs-filter-label" for="zs-search">Search Zone</label>
+      <div class="zs-search-wrap">
+        <span class="material-icons zs-search-icon" aria-hidden="true">search</span>
+        <input
+          id="zs-search"
+          type="text"
+          class="zs-search-input"
+          [(ngModel)]="filterSearch"
+          placeholder="Filter loaded zones by name, area, pincode…"
+        />
+        <button *ngIf="filterSearch" type="button" class="zs-search-clear" (click)="filterSearch = ''" aria-label="Clear search">
+          <span class="material-icons" aria-hidden="true">close</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <p class="zs-hint" *ngIf="zonesError">{{ zonesError }}</p>
+  <p class="zs-hint zs-hint--muted" *ngIf="!canLoadZones && !zonesLoading">Select state and city to load zones from the server.</p>
+  <p class="zs-hint zs-hint--muted" *ngIf="zonesLoading">Loading zones…</p>
+
+  <!-- Zone Table -->
+  <section class="zs-table-section" *ngIf="canLoadZones || zones.length > 0">
+    <div class="zs-table-header">
+      <div class="zs-select-all-wrap">
+        <input
+          type="checkbox"
+          id="zs-select-all"
+          class="zs-checkbox"
+          [checked]="allFilteredSelected"
+          [indeterminate]="someFilteredSelected"
+          (change)="toggleSelectAll()"
+        />
+        <label for="zs-select-all" class="zs-select-all-label">
+          {{ allFilteredSelected ? 'Deselect All' : 'Select All' }}
+          <span class="zs-count-badge" *ngIf="selectedIds.size > 0">({{ selectedIds.size }} selected)</span>
+        </label>
+      </div>
+      <span class="zs-result-count">{{ filteredZones.length }} zone{{ filteredZones.length !== 1 ? 's' : '' }} shown</span>
+    </div>
+
+    <div class="zs-table-wrap">
+      <table class="zs-table">
+        <thead>
+          <tr>
+            <th class="col-check"></th>
+            <th>Zone Name</th>
+            <th class="col-city-state">City / State</th>
+            <th>Live Bid</th>
+            <th>Pincodes</th>
+            <th>Area Names</th>
+            <th class="col-status">Status</th>
+            <th class="col-action">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let zone of filteredZones; trackBy: trackByZone">
+            <tr
+              class="zs-row"
+              [class.is-selected]="selectedIds.has(zone.id)"
+              [class.is-active]="zone.status === 'active'"
+              [class.zs-row--pulse]="pulseZoneId === zone.id"
+              [class.zs-row--auction-live]="zone.status === 'active'"
+            >
+              <td class="col-check">
+                <input
+                  type="checkbox"
+                  class="zs-checkbox"
+                  [id]="'zs-' + zone.id"
+                  [checked]="selectedIds.has(zone.id)"
+                  [disabled]="zone.status === 'active'"
+                  [attr.title]="zone.status === 'active' ? 'Auction is live — cannot start again until it ends' : null"
+                  (change)="toggleZone(zone.id)"
+                />
+              </td>
+              <td>
+                <label
+                  [attr.for]="zone.status === 'active' ? null : 'zs-' + zone.id"
+                  class="zs-zone-name"
+                >{{ zone.name }}</label>
+              </td>
+              <td class="col-city-state">
+                <div class="zs-city-state">
+                  <span class="material-icons city-icon" aria-hidden="true">location_city</span>
+                  <span class="zs-city-state-text">{{ zone.city }}, {{ zone.state }}</span>
+                </div>
+              </td>
+              <td class="zs-live-bid">{{ formatLiveBid(zone) }}</td>
+              <td>
+                <div class="zs-tags">
+                  <span class="zs-tag" *ngFor="let p of zone.pincodes">{{ p }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="zs-tags">
+                  <span class="zs-tag zs-tag--area" *ngFor="let a of zone.areaNames">{{ a }}</span>
+                </div>
+              </td>
+              <td class="col-status">
+                <span class="zs-status-badge" [ngClass]="'zs-status--' + zone.status">
+                  {{ statusLabel(zone.status) }}
+                </span>
+              </td>
+              <td class="col-action">
+                <button
+                  type="button"
+                  class="zs-expand-btn"
+                  (click)="openDetailsDialog(zone)"
+                  aria-label="Open details"
+                >
+                  <span class="material-icons" aria-hidden="true">visibility</span>
+                </button>
+              </td>
+            </tr>
+          </ng-container>
+          <tr *ngIf="filteredZones.length === 0 && !zonesLoading">
+            <td colspan="8" class="zs-empty">No zones match the current filters.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Sticky Bulk Action Bar -->
+  <div class="zs-bulk-bar" *ngIf="selectedIds.size > 0" role="region" aria-label="Auction configuration">
+    <div class="zs-bulk-bar-inner">
+
+      <!-- Row 1: header (fixed) + chips (fills to right edge, wraps only when needed) -->
+      <div class="zs-bulk-top-row">
+        <div class="zs-bulk-header">
+          <span class="material-icons zs-bulk-icon" aria-hidden="true">gavel</span>
+          <div class="zs-bulk-heading-text">
+            <p class="zs-bulk-title">Configure Auction</p>
+            <p class="zs-bulk-subtitle">{{ selectedIds.size }} zone{{ selectedIds.size > 1 ? 's' : '' }} selected</p>
+            <p class="zs-bulk-subtitle zs-bulk-hint" *ngIf="globalSettings">
+              Start, end, and min increment use defaults from <strong>Configuration</strong>; you can change them here.
+            </p>
+          </div>
+        </div>
+        <div class="zs-bulk-selected-chips" aria-label="Selected zones">
+          <span class="zs-selected-chip" *ngFor="let z of selectedZones">
+            <span class="material-icons" aria-hidden="true">location_on</span>{{ z.name }}
+            <button type="button" (click)="toggleZone(z.id)" aria-label="Remove zone">
+              <span class="material-icons" aria-hidden="true">close</span>
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <!-- Row 2: form fields + actions -->
+      <div class="zs-bulk-bottom-row">
+        <div class="zs-bulk-fields">
+          <div class="zs-bulk-field">
+            <label class="zs-bulk-field-label" for="bulk-start">Start Date &amp; Time</label>
+            <input
+              id="bulk-start"
+              type="datetime-local"
+              class="zs-bulk-input"
+              [(ngModel)]="auctionConfig.startDateTime"
+            />
+          </div>
+          <div class="zs-bulk-field">
+            <label class="zs-bulk-field-label" for="bulk-end">End Date &amp; Time</label>
+            <input
+              id="bulk-end"
+              type="datetime-local"
+              class="zs-bulk-input"
+              [(ngModel)]="auctionConfig.endDateTime"
+            />
+          </div>
+          <div class="zs-bulk-field">
+            <label class="zs-bulk-field-label" for="bulk-incr">Min Increment (₹)</label>
+            <input
+              id="bulk-incr"
+              type="number"
+              class="zs-bulk-input"
+              [(ngModel)]="auctionConfig.minIncrement"
+              min="1"
+              step="1000"
+            />
+          </div>
+        </div>
+
+        <div class="zs-bulk-actions">
+          <button type="button" class="zs-btn zs-btn-ghost" (click)="clearSelection()">
+            <span class="material-icons" aria-hidden="true">deselect</span>
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="zs-btn zs-btn-primary"
+            [disabled]="!isConfigValid() || isLoading"
+            (click)="openConfirmDialog()"
+          >
+            <span class="material-icons" aria-hidden="true">{{ isLoading ? 'hourglass_top' : 'rocket_launch' }}</span>
+            {{ isLoading ? 'Launching…' : 'Start Auction' }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div
+  class="custom-modal-overlay"
+  *ngIf="isDetailsOpen && detailsZone as zone"
+  (click)="onDetailsBackdropClick()"
+>
+  <section class="custom-modal custom-modal-lg zone-details-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-hero">
+      <div class="hero-main">
+        <h3>{{ zone.name }}</h3>
+        <p>AIM ZONE FRANCHISE · {{ zone.city | uppercase }}, {{ zone.state | uppercase }}</p>
+      </div>
+      <div class="dialog-status-row">
+        <span class="status" [ngClass]="statusToneClass(zone.status)">{{ statusLabel(zone.status) }}</span>
+        <span class="timer-pill" [ngClass]="statusToneClass(zone.status)">
+          <span class="material-icons" aria-hidden="true">schedule</span>
+          {{ timerPillLabel() }}
+        </span>
+      </div>
+      <button type="button" class="close-btn details-close-btn" (click)="closeDetailsDialog()" aria-label="Close">
+        ×
+      </button>
+    </div>
+
+    <div class="dialog-content zone-dialog-content">
+      <p class="zs-hint zs-hint--muted" *ngIf="detailsLoading">Loading bidding details…</p>
+      <p class="zs-hint" *ngIf="!detailsLoading && detailsError">{{ detailsError }}</p>
+
+      <div class="detail-stat-grid">
+        <div class="detail-stat-card">
+          <span class="stat-icon"><span class="material-icons" aria-hidden="true">payments</span></span>
+          <p>Base Price</p>
+          <strong>{{ formatBasePrice(zone) }}</strong>
+        </div>
+        <div class="detail-stat-card">
+          <span class="stat-icon"><span class="material-icons" aria-hidden="true">trending_up</span></span>
+          <p>Current Bid</p>
+          <strong>{{ detailHighestBid(zone) }}</strong>
+        </div>
+        <div class="detail-stat-card">
+          <span class="stat-icon"><span class="material-icons" aria-hidden="true">groups</span></span>
+          <p>Total Bidders</p>
+          <strong>{{ detailBidders(zone) }}</strong>
+        </div>
+        <div class="detail-stat-card">
+          <span class="stat-icon"><span class="material-icons" aria-hidden="true">analytics</span></span>
+          <p>Total Bids Placed</p>
+          <strong>{{ detailBids(zone) }}</strong>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <section class="detail-block-card">
+          <p class="label"><span class="material-icons" aria-hidden="true">location_on</span> Pincodes</p>
+          <div class="list-tags">
+            <span *ngFor="let p of zone.pincodes">{{ p }}</span>
+          </div>
+          <p class="label"><span class="material-icons" aria-hidden="true">map</span> Areas</p>
+          <div class="list-tags">
+            <span *ngFor="let a of zone.areaNames">{{ a }}</span>
+          </div>
+        </section>
+
+        <section class="detail-block-card">
+          <p class="label"><span class="material-icons" aria-hidden="true">insights</span> Bid Snapshot</p>
+          <div class="info-row">
+            <span>Current leader</span>
+            <strong>{{ detailsData?.currentLeader || 'N/A' }}</strong>
+          </div>
+          <div class="info-row">
+            <span>Highest bid</span>
+            <strong>{{ detailHighestBid(zone) }}</strong>
+          </div>
+          <div class="info-row">
+            <span>Minimum next bid</span>
+            <strong>{{ detailMinimumNextBid(zone) }}</strong>
+          </div>
+        </section>
+      </div>
+
+      <h3 class="leaderboard-title" *ngIf="detailsData?.leaderboard?.length">Bid Leaderboard</h3>
+      <div class="leaderboard-table-wrap" *ngIf="detailsData?.leaderboard?.length">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Bidder Name</th>
+                <th>Bid Amount</th>
+                <th>Time of Bid</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of detailsData?.leaderboard">
+                <td><span class="rank-badge" [ngClass]="'rank-' + row.rank">#{{ row.rank }}</span></td>
+                <td>{{ row.bidderName }}</td>
+                <td>{{ row.bidAmount > 0 ? (row.bidAmount | currency:'INR':'symbol':'1.0-0':'en-IN') : '—' }}</td>
+                <td>{{ formatDetailBidTime(row.bidTime) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <div class="details-actions zone-dialog-footer">
+      <button type="button" class="btn btn-ghost" (click)="closeDetailsDialog()">Close</button>
+    </div>
+  </section>
+</div>

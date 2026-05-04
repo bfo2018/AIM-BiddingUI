@@ -1,0 +1,43 @@
+<header class="admin-header">
+  <div class="header-left">
+    <button
+      *ngIf="!isMobile"
+      type="button"
+      class="menu-toggle-btn"
+      (click)="toggleSidebarCollapse.emit()"
+      [attr.aria-label]="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+      [attr.title]="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+    >
+      <span class="material-icons" aria-hidden="true">
+        {{ isSidebarCollapsed ? 'menu_open' : 'menu' }}
+      </span>
+    </button>
+    <button
+      *ngIf="isMobile"
+      type="button"
+      class="menu-toggle-btn"
+      (click)="toggleSidebar.emit()"
+      aria-label="Open navigation"
+    >
+      <span class="material-icons" aria-hidden="true">menu</span>
+    </button>
+    <div class="title-block">
+      <h1 class="page-title">{{ pageTitle }}</h1>
+      <span class="page-context">Internal console</span>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <button type="button" class="icon-btn" aria-label="Notifications">
+      <span class="material-icons" aria-hidden="true">notifications_none</span>
+    </button>
+    <button type="button" class="profile-chip" aria-label="Admin profile">
+      <span class="avatar">{{ adminInitials || 'AD' }}</span>
+      <span class="chip-text">
+        <span class="chip-name">{{ adminName }}</span>
+        <span class="chip-meta">Admin</span>
+      </span>
+      <span class="material-icons chip-chevron" aria-hidden="true">expand_more</span>
+    </button>
+  </div>
+</header>

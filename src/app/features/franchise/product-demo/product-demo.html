@@ -1,0 +1,80 @@
+<div #pageRoot class="product-demo-page">
+  <section class="hero surface">
+    <div class="container hero-inner">
+      <span
+        aria-hidden="true"
+        class="material-icons menu-icon hero-play-icon demo-reveal demo-reveal--hero-icon"
+      >
+        play_circle_outline
+      </span>
+      <div class="hero-copy">
+        <div class="eyebrow">Product Demo</div>
+        <h1 class="hero-title demo-reveal demo-reveal--hero-title">Explore the Franchise Bidding Platform</h1>
+        <p class="hero-subtitle demo-reveal demo-reveal--hero-subtitle">
+          A premium, marketplace-ready experience designed for speed, clarity, and enterprise-grade workflows.
+        </p>
+        <p class="hero-description demo-reveal demo-reveal--hero-description">
+          A walkthrough of your franchise journey—eligibility and requirements, contracts, investment
+          and earnings, applications, team roles, and bidding.
+        </p>
+        <!-- <a class="btn btn-primary demo-reveal demo-reveal--hero-cta" routerLink="/franchise/place-bid" role="button" aria-label="Start bidding">
+          Start Bidding
+        </a> -->
+      </div>
+    </div>
+  </section>
+
+  <section class="modules">
+    <div class="container">
+      <ng-container *ngFor="let m of modules; let i = index">
+        <section
+          class="module"
+          [ngClass]="{ 'module--reverse': i % 2 === 1, 'module--tone-soft': i % 2 === 1 }"
+          aria-label="{{ m.title }}"
+        >
+          <div class="module-inner">
+            <div class="module-grid">
+              <div class="module-copy demo-reveal demo-reveal--content">
+                <div class="eyebrow">{{ m.eyebrow }}</div>
+                <h2 class="module-title">{{ m.title }}</h2>
+                <h3 *ngIf="m.subheading" class="module-subtitle">{{ m.subheading }}</h3>
+                <p class="module-desc">{{ m.description }}</p>
+
+                <ul class="module-bullets" *ngIf="m.bullets.length">
+                  <li *ngFor="let b of m.bullets" class="module-bullet">
+                    <span class="material-icons bullet-icon" aria-hidden="true">check</span>
+                    <span>{{ b }}</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="module-media">
+                <div class="showcase-media" aria-hidden="true">
+                  <div class="showcase-glow"></div>
+
+                  <div class="showcase-web demo-reveal demo-reveal--showcase-web">
+                    <img src="assets/web-view.png" alt="" />
+                  </div>
+
+                  <div class="showcase-mobile demo-reveal demo-reveal--showcase-mobile">
+                    <img src="assets/mobile-app-view.jpeg" alt="" />
+                  </div>
+
+                  <button
+                    type="button"
+                    class="play-demo-btn demo-reveal demo-reveal--play-demo"
+                    (click)="onPlayDemo()"
+                    aria-label="Play demo"
+                  >
+                    <span class="material-icons play-demo-icon" aria-hidden="true">play_circle</span>
+                    <span class="play-demo-text">Play Demo</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+    </div>
+  </section>
+</div>

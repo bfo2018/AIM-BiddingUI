@@ -1,0 +1,120 @@
+<div #pageRoot class="contract-page">
+  <section class="contract-hero">
+    <div class="container contract-hero-inner">
+      <span
+        aria-hidden="true"
+        class="material-icons menu-icon hero-play-icon demo-reveal demo-reveal--hero-icon"
+      >
+        gavel
+      </span>
+
+      <div class="hero-copy">
+        <p class="contract-hero-eyebrow contract-hero-anim contract-hero-anim--1">Legal framework</p>
+        <h1 class="contract-hero-title contract-hero-anim contract-hero-anim--2">
+          Franchise Agreement
+        </h1>
+        <p class="contract-hero-subtitle contract-hero-anim contract-hero-anim--3">
+          Understand the terms and conditions of your partnership
+        </p>
+        <p class="contract-hero-lead contract-hero-anim contract-hero-anim--4">
+          This agreement outlines operating rights, service obligations, revenue settlement, and compliance
+          standards for your assigned healthcare zone. Designed to keep responsibilities clear and enforceable.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="contract-section contract-overview" aria-labelledby="overview-heading">
+    <div class="container">
+      <header class="contract-section-head contract-reveal">
+        <h2 id="overview-heading">Contract overview</h2>
+        <p>Key clauses at a glance for fast review.</p>
+      </header>
+
+      <div class="summary-grid">
+        <article
+          *ngFor="let card of summaryCards; let i = index"
+          class="summary-card contract-reveal"
+          [style.--stagger]="i"
+        >
+          <span class="material-icons summary-icon" aria-hidden="true">{{ card.icon }}</span>
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.summary }}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="contract-section contract-main" aria-labelledby="sections-heading">
+    <div class="container">
+      <header class="contract-section-head contract-reveal">
+        <h2 id="sections-heading">Agreement sections</h2>
+        <p>Structured clauses presented in readable legal blocks.</p>
+      </header>
+
+      <div class="clause-grid">
+        <article
+          *ngFor="let section of sections; let i = index"
+          class="clause-card contract-reveal"
+          [style.--stagger]="i"
+        >
+          <div class="clause-head">
+            <span class="material-icons clause-icon" aria-hidden="true">{{ section.icon }}</span>
+            <div>
+              <h3>{{ section.title }}</h3>
+              <p>{{ section.subtitle }}</p>
+            </div>
+          </div>
+
+          <ul class="clause-list">
+            <li *ngFor="let item of section.bullets">
+              <span class="material-icons clause-bullet" aria-hidden="true">check_circle</span>
+              <span>{{ item }}</span>
+            </li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="contract-section contract-highlights" aria-labelledby="highlight-heading">
+    <div class="container">
+      <div class="highlight-box contract-reveal">
+        <header class="contract-section-head compact">
+          <h2 id="highlight-heading">Key highlights</h2>
+          <p>Why this agreement structure is practical and partner-friendly.</p>
+        </header>
+
+        <div class="highlight-grid">
+          <article *ngFor="let h of highlights; let i = index" class="highlight-item" [style.--stagger]="i">
+            <span class="material-icons highlight-icon" aria-hidden="true">{{ h.icon }}</span>
+            <h3>{{ h.title }}</h3>
+            <p>{{ h.text }}</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contract-section contract-note">
+    <div class="container">
+      <div class="acceptance-note contract-reveal">
+        <span class="material-icons" aria-hidden="true">info</span>
+        <p>Please review the agreement carefully before proceeding with your franchise application.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="contract-download contract-reveal" aria-labelledby="download-heading">
+    <div class="container contract-download-inner">
+      <div class="download-copy">
+        <h2 id="download-heading">Download Franchise Agreement</h2>
+        <p>Download the complete contract document for offline review.</p>
+      </div>
+      <a class="btn-download" [href]="download.href" [attr.download]="download.fileName">
+        <span class="material-icons" aria-hidden="true">download</span>
+        Download PDF
+      </a>
+    </div>
+  </section>
+</div>

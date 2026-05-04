@@ -1,0 +1,88 @@
+<div class="user-dialog">
+  <header class="dialog-head">
+    <div>
+      <h2>User details</h2>
+      <p>{{ data.user.name }} · {{ data.user.mobile }}</p>
+    </div>
+    <button type="button" class="close-btn" (click)="close()" aria-label="Close user details">
+      <span class="material-icons" aria-hidden="true">close</span>
+    </button>
+  </header>
+
+  <section class="dialog-section">
+    <h3>Basic info</h3>
+    <div class="grid-2">
+      <div class="info-card">
+        <span class="label">User name</span>
+        <strong>{{ data.user.name }}</strong>
+      </div>
+      <div class="info-card">
+        <span class="label">Location</span>
+        <strong>{{ data.user.city }}, {{ data.user.state }}</strong>
+      </div>
+      <div class="info-card">
+        <span class="label">Mobile</span>
+        <strong>{{ data.user.mobile }}</strong>
+      </div>
+      <div class="info-card">
+        <span class="label">Joined</span>
+        <strong>{{ data.user.joinedAt }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="dialog-section">
+    <h3>Application details</h3>
+    <div class="chips">
+      <span class="chip">{{ applicationStatusLabel }}</span>
+      <span class="chip">{{ data.user.eligibility === 'eligible' ? 'Eligible to Bid' : 'Not Eligible' }}</span>
+    </div>
+  </section>
+
+  <section class="dialog-section">
+    <h3>Payment details</h3>
+    <div class="grid-2">
+      <div class="info-card">
+        <span class="label">Registration fee</span>
+        <strong>₹{{ data.user.registrationFee | number }}</strong>
+      </div>
+      <div class="info-card">
+        <span class="label">Payment status</span>
+        <strong>{{ data.user.paymentStatus === 'paid' ? 'Paid' : 'Pending' }}</strong>
+      </div>
+      <div class="info-card" *ngIf="data.user.lastPaymentAt">
+        <span class="label">Last payment</span>
+        <strong>{{ data.user.lastPaymentAt }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="dialog-section">
+    <h3>Bidding activity</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Zone</th>
+            <th>Bid Amount</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let bid of data.bidHistory">
+            <td>{{ bid.zone }}</td>
+            <td>₹{{ bid.amount | number }}</td>
+            <td>{{ bid.timeLabel }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="dialog-section">
+    <h3>Zone participation</h3>
+    <div class="chips">
+      <span class="chip" *ngFor="let zone of data.user.zones">{{ zone }}</span>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,5 @@
+// Shared auction page-toolbar styles (re-uses variables from admin root).
+// Individual component SCSS files can @use this partial.
+
+// This file is intentionally minimal — the page-toolbar styles are inline
+// in each component so they work independently without global import issues.

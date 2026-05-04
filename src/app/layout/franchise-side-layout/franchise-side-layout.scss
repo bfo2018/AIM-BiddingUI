@@ -1,0 +1,333 @@
+.side-layout {
+  min-height: 100vh;
+  background: #f3f6fb;
+  display: flex;
+}
+
+/* Allow fixed-position modals inside routed pages to use full viewport
+   instead of being constrained by mat-drawer-content transform context. */
+:host ::ng-deep .side-layout .mat-drawer-content {
+  transform: none !important;
+}
+
+/* Material stacks `.mat-drawer-side` (z-index: 2) above `.mat-drawer-content` (z-index: 1).
+   Full-viewport modals live inside content, so they stay *under* the sidebar unless the
+   content layer stacks higher. Only apply on desktop `side` mode — at <=960px the drawer
+   uses `over` mode and must stay above content (backdrop + drawer z-index: 3). */
+@media (min-width: 961px) {
+  :host ::ng-deep .side-layout .mat-drawer-content {
+    z-index: 3;
+  }
+}
+
+.sidebar {
+  width: 300px;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(145deg, #1a3a6b 0%, #1565c0 50%, #0d47a1 100%);
+  box-shadow: 8px 0 28px rgba(9, 27, 57, 0.24);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 20;
+}
+
+.sidebar-inner {
+  height: 97vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: 14px 12px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.sidebar-top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 2px 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.14);
+  position: relative;
+}
+
+.brand::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.02) 45%,
+    rgba(255, 255, 255, 0.10) 100%
+  );
+  pointer-events: none;
+}
+
+.brand img {
+  width: 56px;
+  height: 56px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 1;
+}
+
+.brand h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #ffffff;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+
+.brand p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.82);
+  position: relative;
+  z-index: 1;
+}
+
+.menu-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+  padding: 6px 6px;
+}
+
+.menu-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.32);
+  border-radius: 20px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.menu a {
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border-left: 3px solid transparent;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.06);
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.menu a:hover {
+  background: rgba(255, 255, 255, 0.11);
+  border-left-color: rgba(255, 255, 255, 0.62);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.menu a.active-item {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+  border-left-color: #ffffff;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 16px 36px rgba(2, 6, 23, 0.10);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.menu a .menu-icon {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+  padding: 6px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu a .menu-label {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.28;
+  letter-spacing: 0.005em;
+}
+
+.sidebar-bottom {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 13px 13px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 44px rgba(2, 6, 23, 0.14);
+}
+
+.user-block strong,
+.user-block small {
+  display: block;
+}
+
+.user-block strong {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.user-block small {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+}
+
+.switch-btn {
+  border-style: dashed;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.62) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.switch-btn:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #0f3f8f !important;
+  font-weight: 800;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 10px 12px !important;
+  box-shadow: 0 14px 28px rgba(2, 6, 23, 0.12);
+  transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+}
+
+.logout-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+  box-shadow: 0 18px 34px rgba(2, 6, 23, 0.16);
+}
+
+.page-content {
+  min-height: 100vh;
+  width: min(1200px, 100% - 32px);
+  margin: 0 auto;
+  padding: 24px 0 36px;
+  background: #f7f9fc;
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Only shown on mobile when sidebar is open */
+.backdrop {
+  display: none;
+}
+
+.icon-btn {
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #1b2a45;
+}
+
+.icon-btn:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f2;
+}
+
+.mobile-header span {
+  font-weight: 600;
+  color: #1b2a45;
+}
+
+@media (max-width: 960px) {
+  .side-layout {
+    display: block;
+    position: relative;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-103%);
+    transition: transform 220ms ease;
+    z-index: 50;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.42);
+    z-index: 40;
+  }
+
+  .page-content {
+    width: calc(100% - 24px);
+    padding: 16px 0 28px;
+  }
+}

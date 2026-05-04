@@ -1,0 +1,427 @@
+<section class="place-bid-page">
+  <!-- <header class="hero-head">
+    <div class="hero-copy">
+      <p class="hero-kicker">Franchise Marketplace</p>
+      <h2>Place Your Bid</h2>
+      <p>
+        Discover high-potential zones, compare live bidding metrics, and place smart bids with
+        enterprise-grade clarity.
+      </p>
+    </div>
+    <p class="success-msg" *ngIf="successMessage">{{ successMessage }}</p>
+  </header> -->
+
+  <section class="filter-card surface-card">
+    <div class="filter-head">
+      <h3>Find Eligible Zones</h3>
+      <p>Select location filters to load active bidding zones.</p>
+    </div>
+
+    <div class="filter-grid">
+      <div class="field-block">
+        <label>State</label>
+        <ng-select
+          id="state"
+          name="state"
+          class="compact-select"
+          [items]="states"
+          bindLabel="id"
+          bindValue="id"
+          [(ngModel)]="selectedState"
+          [ngModelOptions]="{ standalone: true }"
+          [searchable]="true"
+          [clearable]="false"
+          [placeholder]="'Select state'"
+          [appendTo]="'body'"
+          [dropdownPosition]="'auto'"
+          (ngModelChange)="onStateModelChange($event)"
+        >
+          <ng-template ng-label-tmp let-item="item">
+            <span class="select-icon-wrap"><span class="material-icons">location_on</span></span>
+            <span>{{ item?.id || item }}</span>
+          </ng-template>
+          <ng-template ng-option-tmp let-item="item">
+            <span class="option-row"><span class="material-icons">location_on</span>{{ item.id }}</span>
+          </ng-template>
+        </ng-select>
+      </div>
+
+      <div class="field-block">
+        <label>City / District</label>
+        <ng-select
+          id="city"
+          name="city"
+          class="compact-select"
+          [items]="cityOptions"
+          bindLabel="id"
+          bindValue="id"
+          [(ngModel)]="selectedCity"
+          [ngModelOptions]="{ standalone: true }"
+          [searchable]="true"
+          [clearable]="false"
+          [placeholder]="'Select city or district'"
+          [disabled]="!cityOptions.length"
+          [appendTo]="'body'"
+          [dropdownPosition]="'auto'"
+          (ngModelChange)="onCityModelChange($event)"
+        >
+          <ng-template ng-label-tmp let-item="item">
+            <span class="select-icon-wrap"><span class="material-icons">map</span></span>
+            <span>{{ item?.id || item }}</span>
+          </ng-template>
+          <ng-template ng-option-tmp let-item="item">
+            <span class="option-row"><span class="material-icons">map</span>{{ item.id }}</span>
+          </ng-template>
+        </ng-select>
+      </div>
+
+      <button type="button" class="clear-btn btn btn-ghost" (click)="clearFilters()">
+        <span class="material-icons" aria-hidden="true">refresh</span>
+        Clear
+      </button>
+    </div>
+  </section>
+
+  <ng-container *ngIf="hasZoneData; else emptyState">
+    <section class="zones-status surface-card" *ngIf="zonesLoading">
+      <p class="zones-status-msg">Loading zones…</p>
+    </section>
+
+    <section
+      class="zones-status surface-card"
+      *ngIf="!zonesLoading && !zonesError && zones.length && !isBiddingSocketConnected()"
+    >
+      <span class="material-icons" aria-hidden="true">wifi_off</span>
+      <p>Sign in to connect to live bidding. Bids require an active session and paid registration.</p>
+    </section>
+
+    <section class="zones-status surface-card zones-status--error" *ngIf="!zonesLoading && zonesError">
+      <span class="material-icons" aria-hidden="true">error_outline</span>
+      <p>{{ zonesError }}</p>
+    </section>
+
+    <section class="zones-grid" id="active-zones" *ngIf="!zonesLoading && !zonesError && zones.length">
+      <article
+        class="zone-card"
+        *ngFor="let zone of sortedZonesForDisplay"
+        [class.zone-card--updated]="recentlyUpdatedZoneId === zone.id"
+        [class.zone-card--my-bids]="shouldHighlightUserBidZone(zone)"
+      >
+        <div class="zone-head">
+          <div>
+            <p class="zone-label">Zone</p>
+            <h3>{{ zone.name }}</h3>
+            <div class="zone-live-row">
+              <span class="last-bid">
+                <span class="live-dot" aria-hidden="true"></span>
+                Last bid — {{ zone.uiLastBidAgo }}
+              </span>
+            </div>
+          </div>
+          <span class="status" [ngClass]="zone.uiStatus">{{ zone.uiStatusLabel }}</span>
+        </div>
+
+        <div class="meta-block card-section">
+          <p class="meta-title"><span class="material-icons" aria-hidden="true">pin_drop</span> Pincodes & Areas</p>
+          <div class="tag-row">
+            <span class="tag" *ngFor="let g of zone.pincodeGroups">
+              <ng-container *ngIf="g.areas.length">
+                <strong>{{ g.pincode }}</strong>
+                <span class="tag-areas"> · {{ g.areas.join(', ') }}</span>
+              </ng-container>
+              <ng-container *ngIf="!g.areas.length">
+                <strong>{{ g.pincode }}</strong>
+              </ng-container>
+            </span>
+            <span class="tag tag--muted" *ngIf="!zone.pincodeGroups.length && !zone.pincodes.length">No pincodes listed</span>
+          </div>
+        </div>
+
+        <div class="price-row card-section">
+          <div>
+            <p>Base Price</p>
+            <strong>{{ formatCurrency(zone.basePrice) }}</strong>
+          </div>
+          <div class="current-bid">
+            <p>Current Bid</p>
+            <strong
+              [class.bid-value-flash]="recentlyUpdatedZoneId === zone.id"
+              [class.current-bid__pulse]="bidPulseZoneId === zone.id"
+              [class.current-bid__up]="bidUpFlashZoneId === zone.id"
+            >
+              <span class="trend-up" aria-hidden="true">↑</span>
+              {{ formatCurrency(zone.currentBid) }}
+            </strong>
+            <span class="leading-chip" *ngIf="leadingBadgeZoneId === zone.id">🏆 You are leading</span>
+          </div>
+        </div>
+
+        <div class="stats-row card-section">
+          <p
+            [ngClass]="zone.uiStatus"
+            [class.timer-urgency-warn]="zone.uiTimerUrgency === 'warning'"
+            [class.timer-urgency-critical]="zone.uiTimerUrgency === 'critical'"
+          >
+            <span class="material-icons" aria-hidden="true">schedule</span>
+            {{ zone.uiTimeLabel }}
+          </p>
+          <span>{{ zone.biddersCount }} bidders · {{ zone.bidsCount }} bids</span>
+        </div>
+
+        <div class="card-actions">
+          <button type="button" class="btn btn-outline" (click)="openDetails(zone)">View Details</button>
+          <button
+            type="button"
+            class="btn btn-primary place-bid-primary-cta"
+            (click)="openBid(zone)"
+            [disabled]="!canPlaceBidOnZone(zone)"
+            [attr.title]="placeBidBlockedReason(zone) || null"
+          >
+            Place Bid
+          </button>
+        </div>
+        <p class="zone-bid-hint" *ngIf="placeBidBlockedReason(zone) as reason">{{ reason }}</p>
+      </article>
+    </section>
+
+    <section class="empty-card surface-card zones-empty" *ngIf="!zonesLoading && !zonesError && !zones.length">
+      <span class="material-icons" aria-hidden="true">location_off</span>
+      <h3>No zones in this area</h3>
+      <p>Try another city or check back later.</p>
+    </section>
+  </ng-container>
+
+  <ng-template #emptyState>
+    <section class="empty-card surface-card">
+      <span class="material-icons" aria-hidden="true">travel_explore</span>
+      <h3>Select State and City to view zones</h3>
+      <p>Zones appear only after both filters are selected.</p>
+    </section>
+  </ng-template>
+</section>
+
+<div
+  class="custom-modal-overlay"
+  *ngIf="isZoneDetailsOpen && selectedZone as zone"
+  (click)="onModalBackdropClick()"
+>
+  <section class="custom-modal custom-modal-lg zone-details-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-hero">
+      <div class="hero-main">
+        <h2>{{ zone.name }}</h2>
+        <p>
+          AIM ZONE FRANCHISE · {{ (selectedCity || 'Selected City') | uppercase }},
+          {{ (selectedState || 'Selected State') | uppercase }}
+        </p>
+      </div>
+      <div class="dialog-status-row">
+        <span class="status" [ngClass]="zone.uiStatus">{{ zone.uiStatusLabel }}</span>
+        <span
+          class="timer-pill"
+          [ngClass]="zone.uiStatus"
+          [class.timer-pill--warn]="zone.uiTimerUrgency === 'warning'"
+          [class.timer-pill--crit]="zone.uiTimerUrgency === 'critical'"
+        >
+          <span class="material-icons" aria-hidden="true">schedule</span>
+          {{ zone.uiTimeLabel }}
+        </span>
+      </div>
+      <button type="button" class="close-btn details-close-btn" (click)="closeZoneDetails()" aria-label="Close">
+        ×
+      </button>
+    </div>
+
+    <div class="dialog-content zone-dialog-content">
+      <div class="engagement-alert" [ngClass]="zone.uiStatus">
+        <span class="material-icons" aria-hidden="true">bolt</span>
+        <p *ngIf="zone.uiStatus === 'active'">🚀 You are currently in a high-momentum bidding zone.</p>
+        <p *ngIf="zone.uiStatus === 'closing'">⚡ Hurry! This zone is heating up with rapid activity.</p>
+        <p *ngIf="zone.uiStatus === 'urgent' || zone.uiStatus === 'closed'">
+          🔥 Multiple bids are coming in this time window.
+        </p>
+      </div>
+
+      <div class="detail-stat-grid">
+        <div class="detail-stat-card">
+          <span class="stat-icon"><span class="material-icons" aria-hidden="true">payments</span></span>
+          <p>Base Price</p>
+          <h4>{{ formatCurrency(zone.basePrice) }}</h4>
+        </div>
+        <div class="detail-stat-card">
+          <span class="stat-icon"><span class="material-icons" aria-hidden="true">trending_up</span></span>
+          <p>Current Bid</p>
+          <h4
+            class="current"
+            [class.current-bid__pulse]="bidPulseZoneId === zone.id"
+            [class.current-bid__up]="bidUpFlashZoneId === zone.id"
+          >
+            {{ formatCurrency(zone.currentBid) }}
+          </h4>
+        </div>
+        <div class="detail-stat-card">
+          <span class="stat-icon"><span class="material-icons" aria-hidden="true">groups</span></span>
+          <p>Total Bidders</p>
+          <h4>{{ zone.biddersCount }}</h4>
+        </div>
+        <div class="detail-stat-card">
+          <span class="stat-icon"><span class="material-icons" aria-hidden="true">analytics</span></span>
+          <p>Total Bids Placed</p>
+          <h4>{{ zone.bidsCount }}</h4>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <section class="detail-block-card">
+          <p class="label"><span class="material-icons" aria-hidden="true">location_on</span> Pincodes</p>
+          <div class="list-tags">
+            <span *ngFor="let pin of zone.pincodes">{{ pin }}</span>
+          </div>
+          <p class="label"><span class="material-icons" aria-hidden="true">map</span> Areas</p>
+          <div class="list-tags">
+            <span *ngFor="let area of zone.areaNames">{{ area }}</span>
+          </div>
+        </section>
+
+        <section class="detail-block-card" *ngIf="zone.auctionConfigured; else zoneNotStartedBlock">
+          <p class="label"><span class="material-icons" aria-hidden="true">insights</span> Bid Snapshot</p>
+          <div class="info-row">
+            <span>Current leader</span>
+            <strong>{{ zone.leaderboard[0]?.bidderName || 'N/A' }}</strong>
+          </div>
+          <div class="info-row">
+            <span>Highest bid</span>
+            <strong>{{ formatCurrency(zone.leaderboard[0]?.bidAmount || zone.currentBid) }}</strong>
+          </div>
+          <div class="info-row">
+            <span>Minimum next bid</span>
+            <strong>{{ formatCurrency(getMinimumNextBid(zone)) }}</strong>
+          </div>
+        </section>
+        <ng-template #zoneNotStartedBlock>
+          <section class="detail-block-card">
+            <p class="label"><span class="material-icons" aria-hidden="true">info</span> Auction Status</p>
+            <div class="info-row">
+              <span>Current state</span>
+              <strong>Not started by admin</strong>
+            </div>
+            <div class="info-row">
+              <span>Bidding</span>
+              <strong>Unavailable</strong>
+            </div>
+          </section>
+        </ng-template>
+      </div>
+
+      <h3 class="leaderboard-title" *ngIf="zone.auctionConfigured">Bid Leaderboard</h3>
+      <div class="leaderboard-table-wrap" *ngIf="zone.auctionConfigured">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Bidder Name</th>
+              <th>Bid Amount</th>
+              <th>Time of Bid</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let row of zone.leaderboard"
+              [class.row-live]="highlightedLeaderboardZoneId === zone.id && row.rank === 1"
+              [class.leaderboard-row--top]="row.rank === 1"
+              [class.leaderboard-row--flash]="highlightedLeaderboardZoneId === zone.id && row.rank === 1"
+            >
+              <td>
+                <span class="rank-badge" [ngClass]="'rank-' + row.rank">#{{ row.rank }}</span>
+              </td>
+              <td>{{ row.bidderName }}</td>
+              <td>{{ formatCurrency(row.bidAmount) }}</td>
+              <td>{{ row.bidTime | date: 'mediumTime' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="details-actions zone-dialog-footer">
+      <button type="button" class="btn btn-ghost" (click)="closeZoneDetails()">Close</button>
+      <button
+        type="button"
+        class="btn btn-primary place-bid-primary-cta"
+        (click)="openBidFromDetails()"
+        [disabled]="!canPlaceBidOnZone(zone)"
+        [attr.title]="placeBidBlockedReason(zone) || null"
+      >
+        Place Bid
+      </button>
+    </div>
+  </section>
+</div>
+
+<div
+  class="custom-modal-overlay"
+  *ngIf="isPlaceBidOpen && selectedZone as zone"
+  (click)="onModalBackdropClick()"
+>
+  <section class="custom-modal custom-modal-md bid-modal" (click)="$event.stopPropagation()">
+    <div class="bid-modal-head">
+      <h2>Place Bid - {{ zone.name }}</h2>
+      <button type="button" class="close-btn" (click)="closePlaceBid()" aria-label="Close">×</button>
+    </div>
+    <div class="dialog-content bid-modal-content">
+      <div class="engagement-alert engagement-alert--inline" [ngClass]="zone.uiStatus">
+        <span class="material-icons" aria-hidden="true">rocket_launch</span>
+        <p *ngIf="zone.uiStatus === 'active'">🚀 You are currently the highest bidder if this value is accepted.</p>
+        <p *ngIf="zone.uiStatus === 'closing' || zone.uiStatus === 'urgent'">⚡ Hurry! This zone is getting hotter.</p>
+        <p *ngIf="zone.uiStatus === 'closed'">Bidding has closed for this zone.</p>
+      </div>
+
+      <div class="bid-summary">
+        <p><span class="material-icons" aria-hidden="true">gavel</span> Current Bid: <strong>{{ formatCurrency(zone.currentBid) }}</strong></p>
+        <p>
+          <span class="material-icons" aria-hidden="true">trending_up</span> Minimum Next Bid:
+          <strong>{{ formatCurrency(getMinimumNextBid(zone)) }}</strong>
+        </p>
+      </div>
+
+      <form [formGroup]="bidForm" class="bid-form">
+        <label for="bidAmount">Enter Bid Amount</label>
+        <div class="bid-input-wrap">
+          <span class="material-icons" aria-hidden="true">currency_rupee</span>
+          <input id="bidAmount" type="number" formControlName="bidAmount" placeholder="Enter bid amount" />
+        </div>
+      </form>
+
+      <p
+        class="bid-amount-hint"
+        *ngIf="getBidAmountValidationHint(zone) as hint"
+        [class.bid-amount-hint--ok]="hint.ok"
+        [class.bid-amount-hint--bad]="!hint.ok"
+      >
+        {{ hint.text }}
+      </p>
+
+      <div class="bid-feedback" *ngIf="getBidLeadFeedback(zone) as feedback" [ngClass]="feedback.type">
+        <span class="material-icons" aria-hidden="true">
+          {{ feedback.type === 'leading' ? 'verified' : 'report_problem' }}
+        </span>
+        {{ feedback.message }}
+      </div>
+
+      <p class="error" *ngIf="bidError">{{ bidError }}</p>
+    </div>
+    <div class="bid-modal-footer">
+      <button type="button" class="btn btn-ghost" (click)="closePlaceBid()">Cancel</button>
+      <button
+        type="button"
+        class="btn btn-primary place-bid-primary-cta"
+        (click)="submitBid()"
+        [disabled]="bidSubmitting || !canPlaceBidOnZone(zone)"
+        [attr.title]="placeBidBlockedReason(zone) || null"
+      >
+        <span class="submit-bid-inner">
+          <mat-spinner *ngIf="bidSubmitting" diameter="22" mode="indeterminate"></mat-spinner>
+          <span *ngIf="!bidSubmitting">Submit Bid</span>
+        </span>
+      </button>
+    </div>
+  </section>
+</div>

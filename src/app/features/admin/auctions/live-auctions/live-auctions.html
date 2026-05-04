@@ -1,0 +1,159 @@
+<div class="la-page">
+
+  <!-- Toolbar -->
+  <header class="page-toolbar">
+    <div class="page-toolbar-row page-toolbar-row--main">
+      <div class="page-toolbar-left">
+        <span class="material-icons page-toolbar-icon" aria-hidden="true">wifi_tethering</span>
+        <div class="page-toolbar-text">
+          <div class="page-breadcrumb">Admin / Auction Management / <strong class="page-toolbar-heading">Live Auctions</strong></div>
+          <p class="page-toolbar-subtitle">Real-time monitoring of all ongoing auction zones.</p>
+        </div>
+      </div>
+      <div class="page-toolbar-right">
+        <span class="toolbar-badge la-live-badge">
+          <span class="la-live-dot"></span> {{ activeCount }} Live
+        </span>
+        <span class="toolbar-badge la-warn-badge" *ngIf="closingSoonCount > 0">
+          <span class="material-icons" aria-hidden="true">timer</span>
+          {{ closingSoonCount }} Closing Soon
+        </span>
+        <span class="toolbar-badge" *ngIf="!liveConnected">Socket Offline</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats inline -->
+  <section class="la-stats-row">
+    <div class="la-stat">
+      <span class="material-icons la-stat-icon tone-blue" aria-hidden="true">wifi_tethering</span>
+      <div>
+        <span class="la-stat-num">{{ activeCount }}</span>
+        <span class="la-stat-label">Active Auctions</span>
+      </div>
+    </div>
+    <div class="la-stat">
+      <span class="material-icons la-stat-icon tone-amber" aria-hidden="true">timer</span>
+      <div>
+        <span class="la-stat-num">{{ closingSoonCount }}</span>
+        <span class="la-stat-label">Closing Soon</span>
+      </div>
+    </div>
+    <div class="la-stat">
+      <span class="material-icons la-stat-icon tone-teal" aria-hidden="true">gavel</span>
+      <div>
+        <span class="la-stat-num">{{ totalBidsAcross }}</span>
+        <span class="la-stat-label">Total Bids</span>
+      </div>
+    </div>
+    <div class="la-stat">
+      <span class="material-icons la-stat-icon tone-green" aria-hidden="true">trending_up</span>
+      <div>
+        <span class="la-stat-num">{{ fmtCurrency(highestBid) }}</span>
+        <span class="la-stat-label">Highest Bid</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main layout: auction cards -->
+  <div class="la-layout">
+
+    <!-- Auction Cards -->
+    <section class="la-cards-section">
+      <div
+        class="la-auction-card"
+        *ngFor="let a of auctions; trackBy: trackByAuction"
+        [ngClass]="'status-' + a.status"
+        [class.la-flash]="flashIds.has(a.id)"
+      >
+        <div class="la-card-header">
+          <div class="la-card-title-wrap">
+            <span class="la-status-dot" [ngClass]="'dot-' + a.status"></span>
+            <h3 class="la-card-title">{{ a.zoneName }}</h3>
+          </div>
+          <span class="la-card-status-badge" [ngClass]="'badge-' + a.status">
+            {{ a.status === 'closing_soon' ? 'Closing Soon' : a.status === 'extended' ? 'Extended' : a.status === 'paused' ? 'Paused' : a.status === 'scheduled' ? 'Scheduled' : a.status === 'active' ? 'Active' : 'Closed' }}
+          </span>
+        </div>
+
+        <div class="la-card-location">
+          <span class="material-icons" aria-hidden="true">location_on</span>
+          {{ a.city }}, {{ a.state }}
+        </div>
+
+        <div class="la-card-metrics">
+          <div class="la-metric la-metric--bid">
+            <span class="la-metric-label">Current Bid</span>
+            <span class="la-metric-num">{{ fmtCurrency(a.currentBid) }}</span>
+            <span class="la-metric-growth">{{ bidGrowth(a) }}</span>
+          </div>
+          <div class="la-metric">
+            <span class="la-metric-label">Base Price</span>
+            <span class="la-metric-num la-metric-num--muted">{{ fmtCurrency(a.basePrice) }}</span>
+          </div>
+          <div class="la-metric">
+            <span class="la-metric-label">Time Left</span>
+            <span
+              class="la-metric-num la-time-left"
+              [class.urgent]="a.status === 'closing_soon'"
+            >{{ timeLeft(a.endsAt) }}</span>
+          </div>
+          <div class="la-metric">
+            <span class="la-metric-label">Bidders</span>
+            <span class="la-metric-num">{{ a.totalBidders }}</span>
+          </div>
+          <div class="la-metric">
+            <span class="la-metric-label">Total Bids</span>
+            <span class="la-metric-num">{{ a.totalBids }}</span>
+          </div>
+        </div>
+
+        <div class="la-card-top-bidder">
+          <span class="material-icons" aria-hidden="true">emoji_events</span>
+          <span>Leading: <strong>{{ a.topBidder }}</strong></span>
+        </div>
+
+        <div class="la-card-controls">
+          <button
+            type="button"
+            class="la-ctrl-btn la-ctrl-pause"
+            *ngIf="a.status === 'active' || a.status === 'closing_soon' || a.status === 'extended'"
+            (click)="pauseAuction(a)"
+          >
+            <span class="material-icons" aria-hidden="true">pause_circle</span> Pause
+          </button>
+          <button
+            type="button"
+            class="la-ctrl-btn la-ctrl-resume"
+            *ngIf="a.status === 'paused'"
+            (click)="resumeAuction(a)"
+          >
+            <span class="material-icons" aria-hidden="true">play_circle</span> Resume
+          </button>
+          <button
+            type="button"
+            class="la-ctrl-btn la-ctrl-extend"
+            *ngIf="a.status !== 'closed'"
+            (click)="extendAuction(a)"
+          >
+            <span class="material-icons" aria-hidden="true">schedule</span> +15 min
+          </button>
+          <button
+            type="button"
+            class="la-ctrl-btn la-ctrl-close"
+            *ngIf="a.status !== 'closed'"
+            (click)="forceClose(a)"
+          >
+            <span class="material-icons" aria-hidden="true">stop_circle</span> Force Close
+          </button>
+        </div>
+      </div>
+
+      <div class="la-empty" *ngIf="auctions.length === 0">
+        <span class="material-icons la-empty-icon" aria-hidden="true">gavel</span>
+        <p>No auctions are currently live.</p>
+        <small>Launch auctions from Zone Selection &amp; Setup.</small>
+      </div>
+    </section>
+  </div>
+</div>

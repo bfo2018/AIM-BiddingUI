@@ -1,0 +1,213 @@
+<div class="admin-dash">
+  <header class="dash-header dash-animate dash-animate--1">
+    <div class="dash-header__text">
+      <h2 class="dash-title">{{ pageTitle }}</h2>
+      <p class="dash-subtitle">{{ pageSubtitle }}</p>
+    </div>
+    <div class="dash-header__filters">
+      <label class="filter-label" for="dash-period">Period</label>
+      <select
+        id="dash-period"
+        class="filter-select"
+        [(ngModel)]="filterPeriod"
+        (ngModelChange)="onFilterChange()"
+      >
+        <option value="7d">Last 7 days</option>
+        <option value="30d">Last 30 days</option>
+        <option value="90d">Last 90 days</option>
+      </select>
+    </div>
+  </header>
+
+  <section class="dash-kpis" aria-label="Key metrics">
+    <article
+      *ngFor="let k of kpis; let i = index"
+      class="kpi-card dash-animate"
+      [style.animation-delay.ms]="80 + i * 50"
+    >
+      <div class="kpi-card__top">
+        <span class="material-icons kpi-card__icon" aria-hidden="true">{{ k.icon }}</span>
+        <span
+          class="kpi-card__trend"
+          [class.kpi-card__trend--flat]="k.trend === 'Stable'"
+        >
+          {{ k.trend }}
+        </span>
+      </div>
+      <h3 class="kpi-card__label">{{ k.title }}</h3>
+      <p class="kpi-card__value">{{ k.value }}</p>
+      <p class="kpi-card__hint">{{ k.trendLabel }}</p>
+    </article>
+  </section>
+
+  <div class="dash-grid dash-grid--activity">
+    <section class="panel panel--live dash-animate dash-animate--4" aria-label="Live bidding activity">
+      <div class="panel__head">
+        <h3 class="panel__title">
+          <span class="live-dot" aria-hidden="true"></span>
+          Live bidding activity
+        </h3>
+        <span class="panel__meta">Updates every few seconds</span>
+      </div>
+      <ul class="live-feed">
+        <li
+          *ngFor="let ev of liveFeed; trackBy: trackByFeedId"
+          class="live-feed__item"
+          [class.live-feed__item--pulse]="ev.isHighlight"
+        >
+          <span class="live-feed__pulse" aria-hidden="true"></span>
+          <div class="live-feed__body">
+            <p class="live-feed__msg">{{ ev.message }}</p>
+            <time class="live-feed__time">{{ ev.timeLabel }}</time>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="panel dash-animate dash-animate--5" aria-label="Active zones overview">
+      <div class="panel__head">
+        <h3 class="panel__title">Active zones</h3>
+        <span class="panel__meta">{{ activeZones.length }} markets</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Zone</th>
+              <th>Current bid</th>
+              <th>Time left</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let z of activeZones">
+              <td><strong>{{ z.name }}</strong></td>
+              <td class="tabular">{{ z.currentBid }}</td>
+              <td>{{ z.timeLeft }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [class.badge--active]="z.status === 'active'"
+                  [class.badge--closing]="z.status === 'closing'"
+                >
+                  {{ z.status === 'closing' ? 'Closing soon' : 'Active' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="dash-grid dash-grid--charts">
+    <article class="panel panel--chart dash-animate dash-animate--6">
+      <div class="panel__head">
+        <h3 class="panel__title">Bids trend</h3>
+        <span class="panel__meta">Daily volume</span>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas #bidsTrendCanvas></canvas>
+      </div>
+    </article>
+    <article class="panel panel--chart dash-animate dash-animate--7">
+      <div class="panel__head">
+        <h3 class="panel__title">Zone performance</h3>
+        <span class="panel__meta">Bids by zone</span>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas #zoneBarCanvas></canvas>
+      </div>
+    </article>
+  </section>
+
+  <div class="dash-grid dash-grid--lower">
+    <section class="panel dash-animate dash-animate--8" aria-label="Users overview">
+      <div class="panel__head">
+        <h3 class="panel__title">Users overview</h3>
+      </div>
+      <div class="users-highlight">
+        <div class="users-stat">
+          <span class="users-stat__label">Total users</span>
+          <span class="users-stat__value">{{ usersTotal | number }}</span>
+        </div>
+        <div class="users-stat users-stat--accent">
+          <span class="users-stat__label">New this week</span>
+          <span class="users-stat__value">+{{ usersNewThisWeek }}</span>
+        </div>
+      </div>
+      <h4 class="subheading">Recent sign-ups</h4>
+      <div class="table-wrap table-wrap--compact">
+        <table class="data-table data-table--compact">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Location</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of recentUsers">
+              <td>{{ u.name }}</td>
+              <td>{{ u.location }}</td>
+              <td>
+                <span
+                  class="badge badge--sm"
+                  [class.badge--verified]="u.status === 'verified'"
+                  [class.badge--active]="u.status === 'active'"
+                  [class.badge--pending]="u.status === 'pending'"
+                >
+                  {{ u.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel dash-animate dash-animate--9" aria-label="Recent activity">
+      <div class="panel__head">
+        <h3 class="panel__title">Recent activity</h3>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>User</th>
+              <th>Zone</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of activityLog">
+              <td>{{ row.action }}</td>
+              <td>{{ row.user }}</td>
+              <td>{{ row.zone }}</td>
+              <td class="muted">{{ row.time }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="quick-actions dash-animate dash-animate--10" aria-label="Quick actions">
+    <h3 class="quick-actions__title">Quick actions</h3>
+    <div class="quick-actions__grid">
+      <a routerLink="/admin/settings" class="qa-card">
+        <span class="material-icons" aria-hidden="true">add_location_alt</span>
+        <span>Add zone</span>
+      </a>
+      <a routerLink="/admin/reports" class="qa-card">
+        <span class="material-icons" aria-hidden="true">assessment</span>
+        <span>View reports</span>
+      </a>
+      <a routerLink="/admin/users" class="qa-card">
+        <span class="material-icons" aria-hidden="true">manage_accounts</span>
+        <span>Manage users</span>
+      </a>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,153 @@
+<div #pageRoot class="eligibility-page">
+  <section class="elig-hero">
+    <div class="container elig-hero-inner">
+      <span
+        aria-hidden="true"
+        class="material-icons menu-icon hero-play-icon demo-reveal demo-reveal--hero-icon"
+      >
+        fact_check
+      </span>
+
+      <div class="hero-copy">
+        <p class="elig-hero-eyebrow elig-hero-anim elig-hero-anim--1">Partner onboarding</p>
+        <h1 class="elig-hero-title elig-hero-anim elig-hero-anim--2">Eligibility</h1>
+        <p class="elig-hero-subtitle elig-hero-anim elig-hero-anim--3">
+          Check if you qualify to become an AIM Franchise Partner
+        </p>
+        <p class="elig-hero-lead elig-hero-anim elig-hero-anim--4">
+          A quick, transparent view of who we onboard—so you can self-check fit before you apply. No
+          long documents; just eligibility standards that keep every zone successful.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="elig-section elig-overview" aria-labelledby="overview-heading">
+    <div class="container">
+      <header class="elig-section-head elig-reveal">
+        <h2 id="overview-heading">Eligibility overview</h2>
+        <p>Four pillars we look at before you apply.</p>
+      </header>
+      <div class="overview-grid">
+        <article
+          *ngFor="let card of overviewCards; let i = index"
+          class="overview-card elig-reveal"
+          [style.--stagger]="i"
+        >
+          <span class="material-icons overview-icon" aria-hidden="true">{{ card.icon }}</span>
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.description }}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="elig-section elig-detail" aria-labelledby="detail-heading">
+    <div class="container">
+      <header class="elig-section-head elig-reveal">
+        <h2 id="detail-heading">What we look for</h2>
+        <p>Structured eligibility criteria—organized so you can scan in minutes.</p>
+      </header>
+
+      <div class="detail-grid">
+        <article class="detail-panel elig-reveal">
+          <div class="detail-panel-head">
+            <span class="material-icons" aria-hidden="true">menu_book</span>
+            <div>
+              <h3>Education &amp; qualification</h3>
+              <p>Academic baseline and optional clinical depth.</p>
+            </div>
+          </div>
+          <ul class="checklist">
+            <li *ngFor="let item of educationItems" [class.checklist--highlight]="item.highlight">
+              <span class="material-icons checklist-icon" aria-hidden="true">check_circle</span>
+              <span>{{ item.text }}</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="detail-panel elig-reveal">
+          <div class="detail-panel-head">
+            <span class="material-icons" aria-hidden="true">trending_up</span>
+            <div>
+              <h3>Experience</h3>
+              <p>Commercial and local-market strength.</p>
+            </div>
+          </div>
+          <ul class="checklist">
+            <li *ngFor="let item of experienceItems" [class.checklist--highlight]="item.highlight">
+              <span class="material-icons checklist-icon" aria-hidden="true">check_circle</span>
+              <span>{{ item.text }}</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="detail-panel elig-reveal detail-panel--wide">
+          <div class="detail-panel-head">
+            <span class="material-icons" aria-hidden="true">business_center</span>
+            <div>
+              <h3>Business &amp; operations</h3>
+              <p>What you will run day to day in your zone.</p>
+            </div>
+          </div>
+          <ul class="op-list">
+            <li *ngFor="let item of operationalItems">
+              <span class="material-icons op-icon" aria-hidden="true">{{ item.icon }}</span>
+              <span>{{ item.text }}</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="detail-panel elig-reveal detail-panel--finance">
+          <div class="detail-panel-head">
+            <span class="material-icons" aria-hidden="true">savings</span>
+            <div>
+              <h3>Financial readiness</h3>
+              <p>Indicative ranges—finals are shared during application review.</p>
+            </div>
+          </div>
+          <ul class="finance-list">
+            <li *ngFor="let f of financialPoints">
+              <span class="finance-label">{{ f.label }}</span>
+              <span class="finance-value">{{ f.value }}</span>
+            </li>
+          </ul>
+          <p class="finance-note">
+            <span class="material-icons" aria-hidden="true">tips_and_updates</span>
+            Skills we value: communication, networking, calm execution under deadlines.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="elig-section elig-ideal" aria-labelledby="ideal-heading">
+    <div class="container">
+      <header class="elig-section-head elig-reveal">
+        <h2 id="ideal-heading">Who is this ideal for?</h2>
+        <p>Typical profiles that thrive as AIM franchise partners.</p>
+      </header>
+      <div class="ideal-grid">
+        <article
+          *ngFor="let p of idealProfiles; let i = index"
+          class="ideal-card elig-reveal"
+          [style.--stagger]="i"
+        >
+          <span class="material-icons ideal-icon" aria-hidden="true">{{ p.icon }}</span>
+          <h3>{{ p.title }}</h3>
+          <p>{{ p.blurb }}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="elig-cta elig-reveal" aria-labelledby="cta-heading">
+    <div class="container elig-cta-inner">
+      <div class="elig-cta-copy">
+        <h2 id="cta-heading">Ready to become a Franchise Partner?</h2>
+        <p>Start your application—our team will review fit and next steps with you.</p>
+      </div>
+      <a routerLink="/franchise/franchise-application" class="btn-apply">Apply now</a>
+    </div>
+  </section>
+</div>

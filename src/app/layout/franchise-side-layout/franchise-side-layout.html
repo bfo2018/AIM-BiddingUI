@@ -1,0 +1,59 @@
+<div class="side-layout">
+  <div class="backdrop" *ngIf="isMobile && sidebarOpened" (click)="onNavClick()"></div>
+
+  <aside class="sidebar" [class.open]="sidebarOpened">
+    <div class="sidebar-inner">
+      <div class="sidebar-top">
+        <div class="brand">
+          <img src="assets/AIMLOGO.png" alt="AIM logo" />
+          <div>
+            <h3>Franchise Platform</h3>
+            <p>Modern franchise growth suite</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-scroll">
+        <nav class="menu">
+          <a
+            *ngFor="let item of filteredNavItems"
+            [routerLink]="item.route"
+            routerLinkActive="active-item"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="onNavClick()"
+          >
+            <span class="material-icons menu-icon" aria-hidden="true">{{ item.icon }}</span>
+            <span class="menu-label">{{ item.label }}</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <ng-container *ngIf="user">
+          <div class="user-block">
+            <strong>
+              <span *ngIf="userInitial">{{ userInitial }} · </span>{{ user.name || 'User' }}
+            </strong>
+            <small *ngIf="user.mobile">{{ user.mobile }}</small>
+            <small *ngIf="user.email">{{ user.email }}</small>
+          </div>
+          <button type="button" class="logout-btn" (click)="logout.emit()">Logout</button>
+        </ng-container>
+      </div>
+    </div>
+  </aside>
+
+  <div class="content-area">
+    <header class="mobile-header" *ngIf="isMobile">
+      <button type="button" class="icon-btn" (click)="onMenuToggle()" aria-label="Open side menu">
+        <span class="material-icons" aria-hidden="true">menu</span>
+      </button>
+      <span>Franchise Menu</span>
+    </header>
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+</div>

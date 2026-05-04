@@ -1,0 +1,177 @@
+<div class="ah-page">
+
+  <!-- Toolbar -->
+  <header class="page-toolbar">
+    <div class="page-toolbar-row page-toolbar-row--main">
+      <div class="page-toolbar-left">
+        <span class="material-icons page-toolbar-icon" aria-hidden="true">history</span>
+        <div class="page-toolbar-text">
+          <div class="page-breadcrumb">Admin / Auction Management / <strong class="page-toolbar-heading">Auction History</strong></div>
+          <p class="page-toolbar-subtitle">View completed auction outcomes, winners, and financial summaries.</p>
+        </div>
+      </div>
+      <div class="page-toolbar-right">
+        <span class="toolbar-badge">{{ filteredRecords.length }} Records</span>
+        <button type="button" class="toolbar-btn" (click)="resetFilters()" aria-label="Reset filters">
+          <span class="material-icons" aria-hidden="true">filter_alt_off</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats -->
+  <section class="ah-stats-row">
+    <div class="ah-stat">
+      <span class="material-icons ah-stat-icon tone-green" aria-hidden="true">emoji_events</span>
+      <div>
+        <span class="ah-stat-num">{{ wonCount }}</span>
+        <span class="ah-stat-label">Won</span>
+      </div>
+    </div>
+    <div class="ah-stat">
+      <span class="material-icons ah-stat-icon tone-amber" aria-hidden="true">hourglass_empty</span>
+      <div>
+        <span class="ah-stat-num">{{ noBidCount }}</span>
+        <span class="ah-stat-label">No Bid</span>
+      </div>
+    </div>
+    <div class="ah-stat">
+      <span class="material-icons ah-stat-icon tone-red" aria-hidden="true">cancel</span>
+      <div>
+        <span class="ah-stat-num">{{ cancelledCount }}</span>
+        <span class="ah-stat-label">Cancelled</span>
+      </div>
+    </div>
+    <div class="ah-stat ah-stat--wide">
+      <span class="material-icons ah-stat-icon tone-teal" aria-hidden="true">account_balance_wallet</span>
+      <div>
+        <span class="ah-stat-num">{{ fmtCurrency(totalRevenue) }}</span>
+        <span class="ah-stat-label">Total Revenue</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filters -->
+  <section class="ah-filters">
+    <div class="ah-filter-group">
+      <label class="ah-filter-label" for="ah-status">Status</label>
+      <select id="ah-status" class="ah-select" [(ngModel)]="filterStatus">
+        <option value="all">All</option>
+        <option value="won">Won</option>
+        <option value="no_bid">No Bid</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div class="ah-filter-group">
+      <label class="ah-filter-label" for="ah-state">State</label>
+      <select id="ah-state" class="ah-select" [(ngModel)]="filterState">
+        <option value="">All States</option>
+        <option *ngFor="let s of uniqueStates" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+    <div class="ah-filter-group">
+      <label class="ah-filter-label" for="ah-from">From Date</label>
+      <input id="ah-from" type="date" class="ah-date-input" [(ngModel)]="filterFromDate" />
+    </div>
+    <div class="ah-filter-group">
+      <label class="ah-filter-label" for="ah-to">To Date</label>
+      <input id="ah-to" type="date" class="ah-date-input" [(ngModel)]="filterToDate" />
+    </div>
+    <div class="ah-filter-group ah-filter-search-group">
+      <label class="ah-filter-label" for="ah-search">Search</label>
+      <div class="ah-search-wrap">
+        <span class="material-icons ah-search-icon" aria-hidden="true">search</span>
+        <input id="ah-search" type="text" class="ah-search-input" [(ngModel)]="filterSearch" placeholder="Zone, winner, city…" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Table -->
+  <section class="ah-table-section">
+    <div class="ah-table-wrap">
+      <table class="ah-table">
+        <thead>
+          <tr>
+            <th>Zone Name</th>
+            <th>City / State</th>
+            <th>Winner</th>
+            <th>Final Bid</th>
+            <th>Base Price</th>
+            <th>Total Bids</th>
+            <th>Bidders</th>
+            <th>Duration</th>
+            <th>Closed At</th>
+            <th>Status</th>
+            <th class="col-detail">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let r of filteredRecords; trackBy: trackByRecord">
+            <tr class="ah-row" [class.ah-row--expanded]="expandedId === r.id">
+              <td class="ah-zone-name">{{ r.zoneName }}</td>
+              <td class="ah-city">
+                <span class="material-icons" aria-hidden="true">location_city</span>
+                {{ r.city }}, {{ r.state }}
+              </td>
+              <td>
+                <span *ngIf="r.status === 'won'" class="ah-winner">
+                  <span class="material-icons" aria-hidden="true">emoji_events</span>
+                  {{ r.winner }}
+                </span>
+                <span *ngIf="r.status !== 'won'" class="ah-no-winner">—</span>
+              </td>
+              <td class="ah-amount">{{ fmtCurrency(r.finalBid) }}</td>
+              <td class="ah-amount ah-amount--muted">{{ fmtCurrency(r.basePrice) }}</td>
+              <td class="ah-num">{{ r.totalBids || '—' }}</td>
+              <td class="ah-num">{{ r.totalBidders || '—' }}</td>
+              <td class="ah-duration">{{ fmtDuration(r.durationMinutes) }}</td>
+              <td class="ah-date">{{ r.closedAt | date:'dd MMM yyyy' }}</td>
+              <td>
+                <span class="ah-status-badge" [ngClass]="'ah-status--' + r.status">
+                  {{ statusLabel(r.status) }}
+                </span>
+              </td>
+              <td class="col-detail">
+                <button type="button" class="ah-expand-btn" (click)="toggleExpand(r.id)" [attr.aria-label]="expandedId === r.id ? 'Collapse' : 'Expand'">
+                  <span class="material-icons" aria-hidden="true">{{ expandedId === r.id ? 'expand_less' : 'expand_more' }}</span>
+                </button>
+              </td>
+            </tr>
+            <tr class="ah-expand-row" *ngIf="expandedId === r.id">
+              <td colspan="11">
+                <div class="ah-expand-body">
+                  <div class="ah-expand-block">
+                    <span class="ah-expand-label">Zone ID</span>
+                    <span class="ah-expand-value">{{ r.zoneId }}</span>
+                  </div>
+                  <div class="ah-expand-block">
+                    <span class="ah-expand-label">Winner Mobile</span>
+                    <span class="ah-expand-value">{{ r.winnerMobile }}</span>
+                  </div>
+                  <div class="ah-expand-block">
+                    <span class="ah-expand-label">Auction Started</span>
+                    <span class="ah-expand-value">{{ r.startedAt | date:'dd MMM yyyy, HH:mm' }}</span>
+                  </div>
+                  <div class="ah-expand-block">
+                    <span class="ah-expand-label">Auction Closed</span>
+                    <span class="ah-expand-value">{{ r.closedAt | date:'dd MMM yyyy, HH:mm' }}</span>
+                  </div>
+                  <div class="ah-expand-block">
+                    <span class="ah-expand-label">Growth vs Base</span>
+                    <span class="ah-expand-value tone-green" *ngIf="r.finalBid > 0">
+                      +{{ (((r.finalBid - r.basePrice) / r.basePrice) * 100).toFixed(1) }}%
+                    </span>
+                    <span *ngIf="r.finalBid === 0">—</span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+          <tr *ngIf="filteredRecords.length === 0">
+            <td colspan="11" class="ah-empty">No records match the selected filters.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
