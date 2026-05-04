@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/geo-api/:path*",
+      "destination": "http://54.204.94.44/api/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://transaction-european-squad-strengthen.trycloudflare.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

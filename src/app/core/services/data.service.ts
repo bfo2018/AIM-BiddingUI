@@ -1,11 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
-  /** Base URL (per your spec). */
-  private readonly baseURL = 'http://54.204.94.44/api/';
+  /**
+   * External project: state/city/zones + uploads (`/api/user/...`, `/api/admin/getzonesList`, …).
+   * Local/dev: `http://54.204.94.44/api`. Vercel: `https://YOUR_APP.vercel.app/geo-api` (see vercel.json).
+   */
+  private get baseURL(): string {
+    const b = environment.externalDataApiBaseUrl.replace(/\/$/, '');
+    return `${b}/`;
+  }
 
   constructor(private http: HttpClient) {}
 
@@ -36,4 +43,3 @@ export class DataService {
     return this.http.post(`${this.baseURL}user/common/deleteImageFile`, payload);
   }
 }
-

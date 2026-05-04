@@ -9,6 +9,11 @@ import {
 import { Observable, catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { TokenStorageService } from '../core/services/token-storage.service';
+import { environment } from '../../environments/environment';
+
+function stripTrailingSlash(url: string): string {
+  return url.replace(/\/$/, '');
+}
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -20,11 +25,29 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const franchiseToken = this.tokenStorage.getFranchiseToken();
     const adminToken = this.tokenStorage.getAdminToken();
+
+    const extBase = stripTrailingSlash(environment.externalDataApiBaseUrl);
+    const isExternalDataRequest =
+      req.url.startsWith(extBase) || req.url.includes('/geo-api/');
+
+    const adminBase = stripTrailingSlash(environment.adminApiBaseUrl);
+    const isAdminRequest =
+      !isExternalDataRequest &&
+      (req.url.startsWith(adminBase) || req.url.startsWith('/api/admin'));
+
+    const franchiseBase = stripTrailingSlash(environment.franchiseApiBaseUrl);
+    const regBase = stripTrailingSlash(environment.franchiseRegistrationApiUrl);
+
     const isApiRequest =
       req.url.startsWith('http://localhost:3000') ||
+      req.url.startsWith(franchiseBase) ||
+      req.url.startsWith(adminBase) ||
+      req.url.startsWith(regBase) ||
+      req.url.startsWith(extBase) ||
       req.url.startsWith('/api/') ||
-      req.url.includes('/api/');
-    const isAdminRequest = req.url.includes('/admin');
+      req.url.includes('/api/') ||
+      req.url.includes('/geo-api/');
+
     const token = isAdminRequest ? adminToken : franchiseToken;
 
     const requestToSend =
@@ -52,4 +75,3 @@ export class AuthInterceptor implements HttpInterceptor {
     );
   }
 }
-

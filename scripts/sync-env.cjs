@@ -15,9 +15,12 @@ if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
 }
 
-/** Default API/socket host when env vars are unset (same Cloudflare tunnel as backend). */
+/** Main app API (MongoDB, auth, bidding) — Cloudflare tunnel. */
 const DEFAULT_PUBLIC_API_ORIGIN =
   'https://transaction-european-squad-strengthen.trycloudflare.com';
+
+/** External legacy API (state / city / zones / uploads on separate project). */
+const DEFAULT_EXTERNAL_DATA_API_BASE = 'http://54.204.94.44/api';
 
 function str(key, fallback = '') {
   const v = process.env[key];
@@ -55,6 +58,11 @@ const env = {
     DEFAULT_PUBLIC_API_ORIGIN,
   ),
   biddingSocketUrl: str('BIDDING_SOCKET_URL', DEFAULT_PUBLIC_API_ORIGIN),
+  /** State, city, zones, file upload/delete — external HTTP service (or Vercel /geo-api proxy). */
+  externalDataApiBaseUrl: str(
+    'EXTERNAL_DATA_API_BASE_URL',
+    DEFAULT_EXTERNAL_DATA_API_BASE,
+  ),
   razorpayKey: str('RAZORPAY_KEY_ID', ''),
 };
 
