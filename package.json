@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "sync-env": "node scripts/sync-env.cjs",
+    "prestart": "node scripts/sync-env.cjs",
+    "prebuild": "node scripts/sync-env.cjs",
+    "postinstall": "node scripts/sync-env.cjs",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
@@ -35,6 +39,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "dotenv": "^16.4.7",
     "@angular/build": "^21.2.3",
     "@angular/cli": "^21.2.3",
     "@angular/compiler-cli": "^21.2.0",
