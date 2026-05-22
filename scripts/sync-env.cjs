@@ -15,9 +15,8 @@ if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
 }
 
-/** Main app API (MongoDB, auth, bidding) — Cloudflare tunnel. */
-const DEFAULT_PUBLIC_API_ORIGIN =
-  'https://transaction-european-squad-strengthen.trycloudflare.com';
+/** Main app API (MongoDB, auth, bidding) — local backend default. */
+const DEFAULT_PUBLIC_API_ORIGIN = 'http://localhost:3000';
 
 /** External legacy API (state / city / zones / uploads on separate project). */
 const DEFAULT_EXTERNAL_DATA_API_BASE = 'http://54.204.94.44/api';

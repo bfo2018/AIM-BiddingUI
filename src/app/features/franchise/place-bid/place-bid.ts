@@ -14,6 +14,8 @@ import { Subject, of, asyncScheduler } from 'rxjs';
 import { catchError, observeOn, takeUntil } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { BiddingRealtimeService } from '../../../core/services/bidding-realtime.service';
+import { FranchiseAuctionEventsService } from '../../../core/kafka/franchise-auction-events.service';
+import type { AuctionWinnerFinalizedView } from '../../../core/kafka/kafka-event.models';
 import { PlaceBidUiService } from './place-bid-ui.service';
 import { PlaceBidZonesService } from './place-bid-zones.service';
 
@@ -174,7 +176,8 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
     private readonly cdr: ChangeDetectorRef,
     private readonly snackBar: MatSnackBar,
     private readonly toastr: ToastrService,
-    private readonly placeBidUi: PlaceBidUiService
+    private readonly placeBidUi: PlaceBidUiService,
+    private readonly franchiseAuctionEvents: FranchiseAuctionEventsService
   ) {
     this.bidForm = this.fb.group({
       bidAmount: [null, [Validators.required, Validators.min(1)]],
@@ -185,6 +188,11 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.nowMs = Date.now();
+    this.franchiseAuctionEvents.auctionWinnerFinalizedView$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((view) => {
+        this.scheduleViewUpdate(() => this.onAuctionWinnerFinalized(view));
+      });
     this.loadUserBidActivityFromStorage();
     this.refreshZoneUiState();
     this.loadStatesFromApi();
@@ -207,6 +215,7 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
       clearInterval(this.countdownIntervalId);
       this.countdownIntervalId = null;
     }
+    this.franchiseAuctionEvents.detachSocket();
     this.biddingRealtime.disconnect();
     this.destroy$.next();
     this.destroy$.complete();
@@ -397,6 +406,8 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
     const sock = this.biddingRealtime.connect({ role: 'franchise' });
     if (!sock) return;
 
+    this.franchiseAuctionEvents.attachSocket(sock);
+
     /* Catalog updates (Kafka → server → Socket.IO): listen even when zone list is empty (e.g. new zone add). */
     sock.off('zone-catalog-update');
     sock.on('zone-catalog-update', (evt: unknown) => {
@@ -518,6 +529,46 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
       minBidIncrement: typeof minBidIncrement === 'number' ? minBidIncrement : undefined,
       biddersCount: typeof biddersCount === 'number' ? biddersCount : undefined,
     };
+  }
+
+  private onAuctionWinnerFinalized(view: AuctionWinnerFinalizedView): void {
+    const zone = this.findZoneByExternalId(view.externalZoneId);
+    if (!zone) return;
+
+    zone.auctionDbStatus = 'closed';
+    zone.canBid = false;
+    zone.uiStatus = 'closed';
+    zone.uiStatusLabel = 'Closed';
+    zone.uiTimeLabel = '00:00:00';
+
+    const status = view.outcomeStatus;
+    const title =
+      status === 'won'
+        ? 'Auction ended — winner finalized'
+        : status === 'cancelled'
+          ? 'Auction cancelled'
+          : 'Auction ended — no winning bid';
+
+    const winnerLine =
+      status === 'won' && view.winnerDisplayName
+        ? `Winner: ${view.winnerDisplayName} · ${this.formatCurrency(view.winningAmount)}`
+        : status === 'won'
+          ? `Winning bid: ${this.formatCurrency(view.winningAmount)}`
+          : 'Bidding is closed for this zone.';
+
+    this.toastr.info(winnerLine, title, {
+      timeOut: 6000,
+      toastClass: 'ngx-toastr place-bid-live-toast',
+      titleClass: 'place-bid-live-toast__title',
+      messageClass: 'place-bid-live-toast__message',
+      tapToDismiss: true,
+      onActivateTick: true,
+    });
+
+    this.markZoneUpdated(zone.id);
+    this.nowMs = Date.now();
+    this.computeZoneUiState(zone);
+    this.cdr.markForCheck();
   }
 
   private onBidUpdated(p: BidUpdatedPayload): void {
@@ -664,6 +715,8 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
   }
 
   private mergeCatalogZoneWithExisting(prev: ZoneBidModel, fresh: ZoneBidModel): ZoneBidModel {
+    const closedLike =
+      prev.auctionDbStatus === 'closed' || prev.auctionDbStatus === 'cancelled';
     return {
       ...fresh,
       currentBid: prev.currentBid,
@@ -680,6 +733,15 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
       uiTimeLabel: prev.uiTimeLabel,
       uiLastBidAgo: prev.uiLastBidAgo,
       uiTimerUrgency: prev.uiTimerUrgency,
+      ...(closedLike
+        ? {
+            auctionConfigured: prev.auctionConfigured,
+            auctionDbStatus: prev.auctionDbStatus,
+            canBid: false,
+            bidStartTime: prev.bidStartTime,
+            bidEndTime: prev.bidEndTime,
+          }
+        : {}),
     };
   }
 
