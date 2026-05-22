@@ -424,6 +424,17 @@
   color: #b4232f;
 }
 
+.status.won {
+  background: #e7f8ee;
+  color: #157347;
+  box-shadow: 0 0 0 1px #b8e6cf inset;
+}
+
+.status.lost {
+  background: #fde7ea;
+  color: #b4232f;
+}
+
 .status.inactive {
   background: #eef2f7;
   color: #52627c;

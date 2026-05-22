@@ -58,13 +58,16 @@ export function toAuctionWinnerFinalizedView(
     const externalZoneId = str(o?.['external_zone_id']) || entityId;
     if (!externalZoneId) return null;
 
+    const winnerUserId = str(o?.['winner_user_id']) || null;
     return {
       schemaVersion,
       externalZoneId,
       auctionRoundId: num(o?.['auction_round_id'], 1),
       outcomeStatus: deriveOutcomeStatus(o),
+      winnerUserId,
       winnerDisplayName: displayNameFromUser(data.winnerUser),
       winningAmount: num(o?.['winning_amount']),
+      totalBids: num(o?.['total_bids']),
     };
   }
 
@@ -73,12 +76,15 @@ export function toAuctionWinnerFinalizedView(
   const externalZoneId = str(d.externalZoneId) || entityId;
   if (!externalZoneId) return null;
 
+  const winnerUserId = str(d.winnerUserId) || null;
   return {
     schemaVersion,
     externalZoneId,
     auctionRoundId: num(d.auctionRoundId, 1),
     outcomeStatus: d.outcomeStatus ?? 'no_bid',
+    winnerUserId,
     winnerDisplayName: d.winnerDisplayName ?? null,
     winningAmount: num(d.winningAmount),
+    totalBids: num(d.totalBids),
   };
 }

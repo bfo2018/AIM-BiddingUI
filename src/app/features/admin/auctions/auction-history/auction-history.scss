@@ -213,3 +213,19 @@
 .ah-expand-value { font-size: 0.82rem; font-weight: 600; color: #0f172a; }
 
 .ah-empty { text-align: center; padding: 32px; color: #64748b; }
+
+.ah-loading {
+  padding: 28px 16px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.ah-load-error {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.88rem;
+}

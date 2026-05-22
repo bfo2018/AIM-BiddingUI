@@ -76,8 +76,10 @@ export interface AuctionWinnerFinalizedView {
   externalZoneId: string;
   auctionRoundId: number;
   outcomeStatus: AuctionOutcomeStatus;
+  winnerUserId: string | null;
   winnerDisplayName: string | null;
   winningAmount: number;
+  totalBids: number;
 }
 
 export type AuctionWinnerFinalizedEvent = FranchiseKafkaEventEnvelope<

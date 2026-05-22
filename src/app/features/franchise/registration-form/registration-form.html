@@ -479,9 +479,25 @@
             <!-- STEP 2 -->
             <section *ngIf="currentStep === 2">
               <h2>Company Information</h2>
-              <p class="step-desc">Company details and company address (same as personal address supported).</p>
+              <p class="step-desc">
+                Tell us if you operate under a registered company. You can skip this step if you do not have one yet.
+              </p>
 
-              <div class="field-grid">
+              <div class="field field--full registered-company-question">
+                <span class="field-label">Do you have a registered company?</span>
+                <div class="company-same-address">
+                  <label class="radio-pill">
+                    <input type="radio" formControlName="hasRegisteredCompany" value="Yes" />
+                    Yes
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" formControlName="hasRegisteredCompany" value="No" />
+                    No
+                  </label>
+                </div>
+              </div>
+
+              <div class="field-grid" *ngIf="showCompanyDetailsFields">
                 <div class="field">
                   <label for="companyName">Company / Franchise name</label>
                   <input id="companyName" type="text" formControlName="companyName" placeholder="Enter company name" />
@@ -557,8 +573,11 @@
                 </div>
 
                 <div class="field">
-                  <label for="companyDoorNo">Door / flat no.</label>
+                  <label for="companyDoorNo">Door / flat no. <span class="req">*</span></label>
                   <input id="companyDoorNo" type="text" formControlName="companyDoorNo" placeholder="e.g. 12-B" />
+                  <small class="error" *ngIf="form.controls.companyDoorNo.touched && form.controls.companyDoorNo.invalid">
+                    Door / flat no. is required.
+                  </small>
                 </div>
 
                 <div class="field">
@@ -767,15 +786,20 @@
                   <div><strong>Work experience:</strong> {{ form.value.workExperience }}</div>
                   <div><strong>Healthcare experience:</strong> {{ form.value.healthcareExperience }}</div>
                   <div><strong>Sales experience:</strong> {{ form.value.salesExperience }}</div>
-                  <div><strong>Company name:</strong> {{ form.value.companyName }}</div>
-                  <div><strong>Company email:</strong> {{ form.value.companyemail }}</div>
-                  <div><strong>Company mobile:</strong> {{ form.value.companymobile_number }}</div>
-                  <div><strong>Business website:</strong> {{ form.value.businessWebsite || '—' }}</div>
-                  <div><strong>Business structure:</strong> {{ form.value.businessStructure }}</div>
-                  <div class="review-span-2"><strong>Company address:</strong> {{ form.value.companyArea }}</div>
-                  <div><strong>Company door / street:</strong> {{ form.value.companyDoorNo || '—' }} / {{ form.value.companyStreet }}</div>
-                  <div><strong>Company landmark:</strong> {{ form.value.companyLandmark || '—' }}</div>
-                  <div><strong>Company city/state/PIN:</strong> {{ form.value.companyCity }}, {{ form.value.companyState }} {{ form.value.companyPincode }}</div>
+                  <ng-container *ngIf="showCompanyDetailsFields; else noCompanyReview">
+                    <div><strong>Company name:</strong> {{ form.value.companyName }}</div>
+                    <div><strong>Company email:</strong> {{ form.value.companyemail }}</div>
+                    <div><strong>Company mobile:</strong> {{ form.value.companymobile_number }}</div>
+                    <div><strong>Business website:</strong> {{ form.value.businessWebsite || '—' }}</div>
+                    <div><strong>Business structure:</strong> {{ form.value.businessStructure }}</div>
+                    <div class="review-span-2"><strong>Company address:</strong> {{ form.value.companyArea }}</div>
+                    <div><strong>Company door / street:</strong> {{ form.value.companyDoorNo || '—' }} / {{ form.value.companyStreet }}</div>
+                    <div><strong>Company landmark:</strong> {{ form.value.companyLandmark || '—' }}</div>
+                    <div><strong>Company city/state/PIN:</strong> {{ form.value.companyCity }}, {{ form.value.companyState }} {{ form.value.companyPincode }}</div>
+                  </ng-container>
+                  <ng-template #noCompanyReview>
+                    <div class="review-span-2"><strong>Registered company:</strong> No — company details skipped</div>
+                  </ng-template>
                 </div>
               </div>
             </section>
@@ -787,7 +811,16 @@
             </button>
 
             <button
-              *ngIf="!isReviewStep"
+              *ngIf="showCompanyStepSkip"
+              type="button"
+              class="btn btn-primary"
+              (click)="skipCompanyStep()"
+            >
+              Skip
+            </button>
+
+            <button
+              *ngIf="showStepNextButton"
               type="button"
               class="btn btn-primary"
               (click)="nextStep()"

@@ -1,15 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Subject, asyncScheduler, of } from 'rxjs';
+import { catchError, finalize, observeOn, takeUntil, timeout } from 'rxjs/operators';
+import { ApiBaseService } from '../../../../core/services/api-base.service';
 import { AuctionHistoryRecord } from '../shared/auction.types';
-
-const SEED_HISTORY: AuctionHistoryRecord[] = [
-  { id: 'h1', zoneId: 'z1', zoneName: 'Pune East Prime', city: 'Pune', state: 'Maharashtra', winner: 'Ananya Patel', winnerMobile: '9876543210', finalBid: 2040000, basePrice: 1500000, totalBids: 38, totalBidders: 12, startedAt: '2026-04-01T10:00:00', closedAt: '2026-04-07T18:00:00', durationMinutes: 8880, status: 'won' },
-  { id: 'h2', zoneId: 'z3', zoneName: 'Bengaluru Central Belt', city: 'Bengaluru', state: 'Karnataka', winner: 'Southline Retail', winnerMobile: '9011223344', finalBid: 3870000, basePrice: 3000000, totalBids: 62, totalBidders: 19, startedAt: '2026-03-28T09:00:00', closedAt: '2026-04-04T17:00:00', durationMinutes: 11280, status: 'won' },
-  { id: 'h3', zoneId: 'z6', zoneName: 'Ahmedabad North', city: 'Ahmedabad', state: 'Gujarat', winner: '—', winnerMobile: '—', finalBid: 0, basePrice: 800000, totalBids: 0, totalBidders: 0, startedAt: '2026-03-20T10:00:00', closedAt: '2026-03-27T10:00:00', durationMinutes: 10080, status: 'no_bid' },
-  { id: 'h4', zoneId: 'z8', zoneName: 'Kolkata East Reach', city: 'Kolkata', state: 'West Bengal', winner: '—', winnerMobile: '—', finalBid: 0, basePrice: 600000, totalBids: 0, totalBidders: 0, startedAt: '2026-03-15T11:00:00', closedAt: '2026-03-18T09:00:00', durationMinutes: 4080, status: 'cancelled' },
-  { id: 'h5', zoneId: 'z5', zoneName: 'Hyderabad West Hub', city: 'Hyderabad', state: 'Telangana', winner: 'Alpha Ventures', winnerMobile: '9334455667', finalBid: 1760000, basePrice: 1200000, totalBids: 29, totalBidders: 9, startedAt: '2026-03-10T10:00:00', closedAt: '2026-03-17T18:00:00', durationMinutes: 10080, status: 'won' },
-  { id: 'h6', zoneId: 'z9', zoneName: 'Jaipur Heritage Corridor', city: 'Jaipur', state: 'Rajasthan', winner: 'NextGen Infra', winnerMobile: '9876001234', finalBid: 2290000, basePrice: 2000000, totalBids: 17, totalBidders: 7, startedAt: '2026-03-05T10:00:00', closedAt: '2026-03-12T18:00:00', durationMinutes: 10080, status: 'won' },
-];
 
 @Component({
   selector: 'app-auction-history',
@@ -17,8 +12,10 @@ const SEED_HISTORY: AuctionHistoryRecord[] = [
   templateUrl: './auction-history.html',
   styleUrl: './auction-history.scss',
 })
-export class AuctionHistoryComponent implements OnInit {
-  records: AuctionHistoryRecord[] = SEED_HISTORY.map(r => ({ ...r }));
+export class AuctionHistoryComponent implements OnInit, OnDestroy {
+  records: AuctionHistoryRecord[] = [];
+  loading = false;
+  loadError: string | null = null;
 
   filterStatus: 'all' | 'won' | 'no_bid' | 'cancelled' = 'all';
   filterState = '';
@@ -28,29 +25,156 @@ export class AuctionHistoryComponent implements OnInit {
 
   expandedId: string | null = null;
 
-  ngOnInit(): void {}
+  private readonly destroy$ = new Subject<void>();
+  private viewAlive = true;
 
+  constructor(
+    private readonly http: HttpClient,
+    private readonly apiBase: ApiBaseService,
+    private readonly snackBar: MatSnackBar,
+    private readonly ngZone: NgZone,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
+
+  /** Defer view mutations + run CD (same pattern as Live Auctions / Zone Setup). */
+  private scheduleViewUpdate(fn: () => void): void {
+    Promise.resolve().then(() => {
+      setTimeout(() => {
+        if (!this.viewAlive) return;
+        this.ngZone.run(() => {
+          fn();
+          this.cdr.detectChanges();
+        });
+      }, 0);
+    });
+  }
+
+  ngOnInit(): void {
+    this.scheduleViewUpdate(() => this.loadHistory());
+  }
+
+  ngOnDestroy(): void {
+    this.viewAlive = false;
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadHistory(): void {
+    this.loading = true;
+    this.loadError = null;
+    this.cdr.detectChanges();
+
+    const url = `${this.apiBase.getAdminBaseUrl().replace(/\/$/, '')}/auctions/history`;
+
+    this.http
+      .get<{ records: AuctionHistoryRecord[] }>(url)
+      .pipe(
+        timeout(15000),
+        takeUntil(this.destroy$),
+        observeOn(asyncScheduler),
+        catchError((err: HttpErrorResponse) => {
+          const msg =
+            err.status === 401 || err.status === 403
+              ? 'Admin session expired or unauthorized. Please log in again.'
+              : err.error?.message || err.message || 'Failed to load auction history.';
+          return of({ records: [] as AuctionHistoryRecord[], error: msg });
+        }),
+        finalize(() => {
+          this.scheduleViewUpdate(() => {
+            this.loading = false;
+          });
+        })
+      )
+      .subscribe((res) => {
+        this.scheduleViewUpdate(() => {
+          if (!this.viewAlive) return;
+          const err = (res as { error?: string })?.error;
+          if (err) {
+            this.loadError = err;
+            this.records = [];
+            this.snackBar.open(err, 'Close', { duration: 4000 });
+            return;
+          }
+          if (!res || typeof res !== 'object') return;
+          this.records = (res.records ?? []).map((r) => this.normalizeRecord(r));
+          this.loadError = null;
+        });
+      });
+  }
+
+  private normalizeRecord(raw: AuctionHistoryRecord): AuctionHistoryRecord {
+    return {
+      ...raw,
+      zoneName: String(raw.zoneName ?? 'Zone').trim() || 'Zone',
+      city: String(raw.city ?? '').trim(),
+      state: String(raw.state ?? '').trim(),
+      winner: String(raw.winner ?? '—').trim() || '—',
+      winnerMobile: String(raw.winnerMobile ?? '—').trim() || '—',
+      finalBid: Math.max(0, Number(raw.finalBid) || 0),
+      basePrice: Math.max(0, Number(raw.basePrice) || 0),
+      totalBids: Math.max(0, Number(raw.totalBids) || 0),
+      totalBidders: Math.max(0, Number(raw.totalBidders) || 0),
+      durationMinutes: Math.max(0, Number(raw.durationMinutes) || 0),
+      startedAt: raw.startedAt ? String(raw.startedAt) : '',
+      closedAt: raw.closedAt ? String(raw.closedAt) : '',
+      status:
+        raw.status === 'won' || raw.status === 'no_bid' || raw.status === 'cancelled'
+          ? raw.status
+          : 'no_bid',
+    };
+  }
+
+  /** States from full dataset (filter dropdown). */
   get uniqueStates(): string[] {
-    return [...new Set(this.records.map(r => r.state))].sort();
+    return [...new Set(this.records.map((r) => r.state).filter((s) => s.length > 0))].sort();
   }
 
   get filteredRecords(): AuctionHistoryRecord[] {
     const q = this.filterSearch.trim().toLowerCase();
-    return this.records.filter(r => {
-      const byStatus = this.filterStatus === 'all' || r.status === this.filterStatus;
-      const byState  = !this.filterState || r.state === this.filterState;
-      const bySearch = !q || r.zoneName.toLowerCase().includes(q) || r.winner.toLowerCase().includes(q) || r.city.toLowerCase().includes(q);
-      const byFrom   = !this.filterFromDate || new Date(r.closedAt) >= new Date(this.filterFromDate);
-      const byTo     = !this.filterToDate   || new Date(r.closedAt) <= new Date(this.filterToDate + 'T23:59:59');
-      return byStatus && byState && bySearch && byFrom && byTo;
+    const fromMs = this.filterFromDate
+      ? new Date(`${this.filterFromDate}T00:00:00`).getTime()
+      : null;
+    const toMs = this.filterToDate
+      ? new Date(`${this.filterToDate}T23:59:59.999`).getTime()
+      : null;
+
+    return this.records.filter((r) => {
+      if (this.filterStatus !== 'all' && r.status !== this.filterStatus) return false;
+      if (this.filterState && r.state !== this.filterState) return false;
+
+      if (q) {
+        const hay = `${r.zoneName} ${r.city} ${r.state} ${r.winner} ${r.winnerMobile} ${r.zoneId}`
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+
+      if (fromMs != null || toMs != null) {
+        const closedMs = r.closedAt ? new Date(r.closedAt).getTime() : NaN;
+        if (!Number.isFinite(closedMs)) return false;
+        if (fromMs != null && closedMs < fromMs) return false;
+        if (toMs != null && closedMs > toMs) return false;
+      }
+
+      return true;
     });
   }
 
-  get wonCount():     number { return this.records.filter(r => r.status === 'won').length; }
-  get noBidCount():   number { return this.records.filter(r => r.status === 'no_bid').length; }
-  get cancelledCount(): number { return this.records.filter(r => r.status === 'cancelled').length; }
+  get wonCount(): number {
+    return this.filteredRecords.filter((r) => r.status === 'won').length;
+  }
+
+  get noBidCount(): number {
+    return this.filteredRecords.filter((r) => r.status === 'no_bid').length;
+  }
+
+  get cancelledCount(): number {
+    return this.filteredRecords.filter((r) => r.status === 'cancelled').length;
+  }
+
   get totalRevenue(): number {
-    return this.records.filter(r => r.status === 'won').reduce((s, r) => s + r.finalBid, 0);
+    return this.filteredRecords
+      .filter((r) => r.status === 'won')
+      .reduce((s, r) => s + r.finalBid, 0);
   }
 
   resetFilters(): void {
@@ -84,5 +208,7 @@ export class AuctionHistoryComponent implements OnInit {
     return 'Cancelled';
   }
 
-  trackByRecord(_: number, r: AuctionHistoryRecord): string { return r.id; }
+  trackByRecord(_: number, r: AuctionHistoryRecord): string {
+    return r.id;
+  }
 }

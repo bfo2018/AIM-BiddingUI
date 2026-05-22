@@ -241,6 +241,23 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
 
   readonly genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'] as const;
 
+  private readonly companyDetailControlNames = [
+    'companyName',
+    'companyemail',
+    'companymobile_number',
+    'businessWebsite',
+    'businessStructure',
+    'companySameAddress',
+    'companyArea',
+    'companyDoorNo',
+    'companyStreet',
+    'companyLandmark',
+    'companyCountry',
+    'companyState',
+    'companyCity',
+    'companyPincode',
+  ] as const;
+
   readonly businessStructureOptions = [
     'Sole Proprietorship',
     'Partnership',
@@ -328,6 +345,7 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
     state: FormControl<string>;
 
     // Company information (step 2)
+    hasRegisteredCompany: FormControl<'Yes' | 'No'>;
     companyName: FormControl<string>;
     companyemail: FormControl<string>;
     companymobile_number: FormControl<string>;
@@ -386,6 +404,10 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
       identityPassport: new FormControl<File | null>(null),
 
       // Company information (step 2)
+      hasRegisteredCompany: new FormControl<'Yes' | 'No'>('No', {
+        validators: [Validators.required],
+        nonNullable: true,
+      }),
       companyName: ['', [Validators.required, Validators.minLength(2)]],
       companyemail: ['', [Validators.required, Validators.email]],
       companymobile_number: ['', [Validators.required, Validators.pattern(/^[6-9][0-9]{9}$/)]],
@@ -396,7 +418,7 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
         nonNullable: true,
       }),
       companyArea: ['', [Validators.required, Validators.minLength(3)]],
-      companyDoorNo: [''],
+      companyDoorNo: ['', [Validators.required, Validators.minLength(1)]],
       companyStreet: ['', [Validators.required, Validators.minLength(2)]],
       companyLandmark: [''],
       companyCountry: ['IN'],
@@ -440,6 +462,7 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
     });
 
     const maybeSyncCompany = (): void => {
+      if (this.form.controls.hasRegisteredCompany.value !== 'Yes') return;
       if (this.form.controls.companySameAddress.value === 'Yes') {
         this.syncCompanyAddressFromPresent();
       }
@@ -453,13 +476,14 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
     this.form.controls.presentCity.valueChanges.pipe(takeUntilDestroyed()).subscribe(maybeSyncCompany);
     this.form.controls.presentPincode.valueChanges.pipe(takeUntilDestroyed()).subscribe(maybeSyncCompany);
 
-    // Company address: same-as toggle + city dropdown options.
-    if (this.form.controls.companySameAddress.value === 'Yes') {
-      this.syncCompanyAddressFromPresent();
-      this.disableCompanyAddressControls();
-    }
+    this.form.controls.hasRegisteredCompany.valueChanges.pipe(takeUntilDestroyed()).subscribe((val) => {
+      this.onHasRegisteredCompanyChanged((val ?? 'No') as 'Yes' | 'No');
+    });
+    this.setCompanyDetailsRequired(false);
 
+    // Company address: same-as toggle + city dropdown options.
     this.form.controls.companySameAddress.valueChanges.pipe(takeUntilDestroyed()).subscribe((val) => {
+      if (this.form.controls.hasRegisteredCompany.value !== 'Yes') return;
       const mode = (val ?? 'Yes') as 'Yes' | 'No';
       if (mode === 'Yes') {
         this.syncCompanyAddressFromPresent();
@@ -473,6 +497,7 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
     });
 
     this.form.controls.companyState.valueChanges.pipe(takeUntilDestroyed()).subscribe((st) => {
+      if (this.form.controls.hasRegisteredCompany.value !== 'Yes') return;
       const mode = this.form.controls.companySameAddress.value;
       if (mode !== 'No') return;
       const nextState = (st ?? '').toString().trim();
@@ -504,6 +529,20 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
 
   get canMoveNext(): boolean {
     return this.isStepValid(this.currentStep);
+  }
+
+  get showCompanyDetailsFields(): boolean {
+    return this.form.controls.hasRegisteredCompany.value === 'Yes';
+  }
+
+  /** Step 2 with no registered company — show Skip instead of Next. */
+  get showCompanyStepSkip(): boolean {
+    return this.currentStep === 2 && !this.showCompanyDetailsFields;
+  }
+
+  /** Next button hidden on step 2 when user chose not to add company details. */
+  get showStepNextButton(): boolean {
+    return !this.isReviewStep && !this.showCompanyStepSkip;
   }
 
   get isPassportIdentity(): boolean {
@@ -649,6 +688,7 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
         idType: String(personalInfo['idType'] ?? ''),
         idNumber: String(personalInfo['idNumber'] ?? ''),
 
+        hasRegisteredCompany: this.hasExistingCompanyInfo(companyInfo) ? 'Yes' : 'No',
         companyName: String(companyInfo['companyName'] ?? ''),
         companyemail: String(companyInfo['companyemail'] ?? ''),
         companymobile_number: String(companyInfo['companymobile_number'] ?? ''),
@@ -709,8 +749,10 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
     this.updateProfileImageValidator();
     this.updateIdentityFileValidators();
 
-    if (this.form.controls.companySameAddress.value === 'Yes') {
-      this.disableCompanyAddressControls();
+    const hasCompany = this.form.controls.hasRegisteredCompany.value === 'Yes';
+    this.setCompanyDetailsRequired(hasCompany);
+    if (hasCompany) {
+      this.applyCompanySameAddressMode();
     } else {
       this.enableCompanyAddressControls();
     }
@@ -814,24 +856,10 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
       ];
     }
     if (step === 2) {
-      return [
-        // Company details
-        'companyName',
-        'companyemail',
-        'companymobile_number',
-        'businessWebsite',
-        'businessStructure',
-        // Company address
-        'companySameAddress',
-        'companyArea',
-        'companyDoorNo',
-        'companyStreet',
-        'companyLandmark',
-        'companyCountry',
-        'companyState',
-        'companyCity',
-        'companyPincode',
-      ];
+      if (this.form.controls.hasRegisteredCompany.value === 'No') {
+        return ['hasRegisteredCompany'];
+      }
+      return ['hasRegisteredCompany', ...this.companyDetailControlNames];
     }
     if (step === 3) return ['workExperience', 'healthcareExperience', 'salesExperience', 'backgroundNote'];
     if (step === 4) return ['acceptTerms'];
@@ -847,9 +875,128 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
   private isStepValid(step: number): boolean {
     for (const name of this.controlsForStep(step)) {
       const control = this.form.controls[name as keyof typeof this.form.controls];
+      if (control.disabled) continue;
       if (control.invalid) return false;
     }
     return true;
+  }
+
+  private validatorsForCompanyControl(name: (typeof this.companyDetailControlNames)[number]) {
+    switch (name) {
+      case 'companyName':
+        return [Validators.required, Validators.minLength(2)];
+      case 'companyemail':
+        return [Validators.required, Validators.email];
+      case 'companymobile_number':
+        return [Validators.required, Validators.pattern(/^[6-9][0-9]{9}$/)];
+      case 'businessWebsite':
+        return [];
+      case 'businessStructure':
+        return [Validators.required];
+      case 'companySameAddress':
+        return [Validators.required];
+      case 'companyArea':
+        return [Validators.required, Validators.minLength(3)];
+      case 'companyDoorNo':
+        return [Validators.required, Validators.minLength(1)];
+      case 'companyStreet':
+        return [Validators.required, Validators.minLength(2)];
+      case 'companyLandmark':
+        return [];
+      case 'companyCountry':
+        return [Validators.required];
+      case 'companyState':
+        return [Validators.required];
+      case 'companyCity':
+        return [Validators.required, Validators.minLength(2)];
+      case 'companyPincode':
+        return [Validators.required, Validators.pattern(/^[0-9]{6}$/)];
+      default:
+        return [];
+    }
+  }
+
+  private setCompanyDetailsRequired(required: boolean): void {
+    for (const name of this.companyDetailControlNames) {
+      const control = this.form.controls[name];
+      if (required) {
+        control.setValidators(this.validatorsForCompanyControl(name));
+      } else {
+        control.clearValidators();
+      }
+      control.updateValueAndValidity({ emitEvent: false });
+    }
+  }
+
+  private clearCompanyFormValues(): void {
+    this.form.patchValue(
+      {
+        companyName: '',
+        companyemail: '',
+        companymobile_number: '',
+        businessWebsite: '',
+        businessStructure: '',
+        companySameAddress: 'Yes',
+        companyArea: '',
+        companyDoorNo: '',
+        companyStreet: '',
+        companyLandmark: '',
+        companyCountry: 'IN',
+        companyState: '',
+        companyCity: '',
+        companyPincode: '',
+      },
+      { emitEvent: false }
+    );
+    this.companyCities = [];
+  }
+
+  private applyCompanySameAddressMode(): void {
+    const mode = this.form.controls.companySameAddress.value;
+    if (mode === 'Yes') {
+      this.syncCompanyAddressFromPresent();
+      this.disableCompanyAddressControls();
+    } else {
+      this.enableCompanyAddressControls();
+      const st = this.form.controls.companyState.value;
+      if (st) void this.loadCompanyCities(st);
+    }
+  }
+
+  private onHasRegisteredCompanyChanged(mode: 'Yes' | 'No'): void {
+    if (mode === 'Yes') {
+      this.setCompanyDetailsRequired(true);
+      this.applyCompanySameAddressMode();
+      return;
+    }
+    this.setCompanyDetailsRequired(false);
+    this.clearCompanyFormValues();
+    this.enableCompanyAddressControls();
+  }
+
+  private hasExistingCompanyInfo(companyInfo: Record<string, unknown>): boolean {
+    const keys = [
+      'companyName',
+      'companyemail',
+      'companymobile_number',
+      'companyarea',
+      'doorno',
+      'street',
+      'companystate',
+      'companycity',
+      'companypincode',
+    ];
+    return keys.some((k) => String(companyInfo[k] ?? '').trim() !== '');
+  }
+
+  skipCompanyStep(): void {
+    if (this.currentStep !== 2) return;
+    this.form.controls.hasRegisteredCompany.setValue('No', { emitEvent: false });
+    this.onHasRegisteredCompanyChanged('No');
+    this.formAttempted = false;
+    if (this.currentStep >= this.steps.length) return;
+    this.currentStep += 1;
+    this.scrollTop();
   }
 
   private scrollTop(): void {
@@ -1691,20 +1838,23 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
 
     const personalInfo = omitNullProps(personalInfoBase);
 
-    const companyInfo = omitNullProps({
-      companyName: trimToNull(raw.companyName),
-      companyemail: trimToNull(raw.companyemail),
-      companymobile_number: trimToNull(raw.companymobile_number),
-      sameaddress: raw.companySameAddress,
-      companyarea: trimToNull(raw.companyArea),
-      doorno: trimToNull(raw.companyDoorNo),
-      street: trimToNull(raw.companyStreet),
-      landmark: trimToNull(raw.companyLandmark),
-      companycountry: trimToNull(raw.companyCountry),
-      companystate: trimToNull(raw.companyState),
-      companycity: trimToNull(raw.companyCity),
-      companypincode: trimToNull(raw.companyPincode),
-    });
+    const hasCompany = raw.hasRegisteredCompany === 'Yes';
+    const companyInfo = hasCompany
+      ? omitNullProps({
+          companyName: trimToNull(raw.companyName),
+          companyemail: trimToNull(raw.companyemail),
+          companymobile_number: trimToNull(raw.companymobile_number),
+          sameaddress: raw.companySameAddress,
+          companyarea: trimToNull(raw.companyArea),
+          doorno: trimToNull(raw.companyDoorNo),
+          street: trimToNull(raw.companyStreet),
+          landmark: trimToNull(raw.companyLandmark),
+          companycountry: trimToNull(raw.companyCountry),
+          companystate: trimToNull(raw.companyState),
+          companycity: trimToNull(raw.companyCity),
+          companypincode: trimToNull(raw.companyPincode),
+        })
+      : {};
 
     const experience_background = {
       work_experience: trimToNull(raw.workExperience),
@@ -1720,14 +1870,16 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
       terms_accepted: raw.acceptTerms === true,
     };
 
-    const bs = trimToNull(raw.businessStructure);
-    if (bs !== null) {
-      payload['businessStructure'] = bs;
-    }
+    if (hasCompany) {
+      const bs = trimToNull(raw.businessStructure);
+      if (bs !== null) {
+        payload['businessStructure'] = bs;
+      }
 
-    const bw = trimToNull(raw.businessWebsite);
-    if (bw !== null) {
-      payload['businessWebsite'] = bw;
+      const bw = trimToNull(raw.businessWebsite);
+      if (bw !== null) {
+        payload['businessWebsite'] = bw;
+      }
     }
 
     return payload;
@@ -1775,6 +1927,7 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
         identityFront: null,
         identityBack: null,
         identityPassport: null,
+        hasRegisteredCompany: 'No',
         companyName: '',
         companyemail: '',
         companymobile_number: '',
@@ -1813,8 +1966,8 @@ export class RegistrationFormComponent implements OnInit, AfterViewInit, OnDestr
     this.presentCities = [];
     this.companyCities = [];
 
-    this.syncCompanyAddressFromPresent();
-    this.disableCompanyAddressControls();
+    this.setCompanyDetailsRequired(false);
+    this.enableCompanyAddressControls();
 
     if (this.identityFrontEl?.nativeElement) this.identityFrontEl.nativeElement.value = '';
     if (this.identityBackEl?.nativeElement) this.identityBackEl.nativeElement.value = '';

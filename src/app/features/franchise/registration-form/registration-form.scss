@@ -286,6 +286,47 @@
   grid-column: 1 / -1;
 }
 
+.registered-company-question {
+  margin-bottom: 18px;
+}
+
+.registered-company-question .field-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.company-same-address {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.radio-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio-pill:has(input:checked) {
+  border-color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary);
+}
+
+.radio-pill input {
+  margin: 0;
+}
+
 .field-label-block {
   font-size: 12px;
   font-weight: 800;

@@ -89,7 +89,7 @@ type ZoneBidModel = {
   deadline: Date;
   lastBidAt: Date;
   leaderboard: ZoneLeaderboardItem[];
-  uiStatus: 'active' | 'closing' | 'urgent' | 'closed' | 'inactive';
+  uiStatus: 'active' | 'closing' | 'urgent' | 'closed' | 'inactive' | 'won' | 'lost';
   uiStatusLabel: string;
   uiTimeLabel: string;
   uiLastBidAgo: string;
@@ -99,6 +99,10 @@ type ZoneBidModel = {
   auctionDbStatus: 'not_configured' | 'scheduled' | 'live' | 'closed' | 'cancelled';
   bidStartTime: Date | null;
   bidEndTime: Date | null;
+  /** Set when auction ended — used for Won / Lost / Closed badge. */
+  winnerUserId: string | null;
+  userParticipated: boolean;
+  userWon: boolean;
 };
 
 type ZoneConfigStatusRow = {
@@ -109,6 +113,9 @@ type ZoneConfigStatusRow = {
   bid_start_time: string | null;
   bid_end_time: string | null;
   minBidIncrement: number;
+  winnerUserId?: string | null;
+  userParticipated?: boolean;
+  userWon?: boolean;
 };
 
 type CityBidModel = {
@@ -162,6 +169,9 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
   leadingBadgeZoneId: string | null = null;
   bidSubmitting = false;
   registrationPaid = false;
+  /** Admin Users Management approve/reject — required to place bids. */
+  franchiseReviewStatus: 'pending' | 'approved' | 'rejected' = 'pending';
+  franchiseReviewLoaded = false;
   private countdownIntervalId: ReturnType<typeof setInterval> | null = null;
 
   /** zoneId → last time user placed a bid on that zone (ms). Used for ordering + highlight while bidding is open. */
@@ -197,6 +207,7 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
     this.refreshZoneUiState();
     this.loadStatesFromApi();
     this.loadRegistrationPayment();
+    this.loadFranchiseReviewStatus();
     this.bidForm
       .get('bidAmount')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -265,6 +276,55 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
           this.rejoinAllBiddingZones();
         });
       });
+  }
+
+  private loadFranchiseReviewStatus(): void {
+    this.http
+      .get<Record<string, unknown>>(`${this.apiBase()}/api/users/me`)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(() => of(null)),
+        observeOn(asyncScheduler)
+      )
+      .subscribe((user) => {
+        this.runInZoneAndDetect(() => {
+          this.franchiseReviewLoaded = true;
+          this.franchiseReviewStatus = this.parseReviewStatus(user);
+          this.rejoinAllBiddingZones();
+        });
+      });
+  }
+
+  private parseReviewStatus(user: Record<string, unknown> | null): 'pending' | 'approved' | 'rejected' {
+    if (!user) return 'pending';
+    const rs = String(user['reviewStatus'] ?? '').toLowerCase();
+    if (rs === 'approved' || rs === 'rejected') return rs;
+    const legacy = String(user['status'] ?? '').toLowerCase();
+    if (legacy === 'approved') return 'approved';
+    if (legacy === 'rejected') return 'rejected';
+    if (user['isalldocverified'] === true) return 'approved';
+    return 'pending';
+  }
+
+  isFranchiseApproved(): boolean {
+    return this.franchiseReviewStatus === 'approved';
+  }
+
+  private reviewBlockedMessage(): string {
+    if (this.franchiseReviewStatus === 'rejected') {
+      return 'Your franchise application was not approved. Please contact admin or support for assistance.';
+    }
+    return 'Your application is pending admin approval. You cannot place bids until you are approved. Please contact admin or support.';
+  }
+
+  private showBidBlockedToast(message: string): void {
+    this.toastr.error(message, 'Cannot place bid', {
+      timeOut: 6000,
+      toastClass: 'ngx-toastr place-bid-live-toast',
+      titleClass: 'place-bid-live-toast__title',
+      messageClass: 'place-bid-live-toast__message',
+      tapToDismiss: true,
+    });
   }
 
   get hasZoneData(): boolean {
@@ -362,17 +422,29 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
 
   canPlaceBidOnZone(zone: ZoneBidModel): boolean {
     return (
+      this.isFranchiseApproved() &&
       zone.auctionConfigured &&
       this.isBiddingSocketConnected() &&
       zone.canBid &&
       zone.uiStatus !== 'closed' &&
+      zone.uiStatus !== 'won' &&
+      zone.uiStatus !== 'lost' &&
       zone.uiStatus !== 'inactive'
     );
   }
 
   placeBidBlockedReason(zone: ZoneBidModel): string | null {
+    if (!this.isFranchiseApproved()) {
+      return this.reviewBlockedMessage();
+    }
     if (!zone.auctionConfigured) {
       return 'Bidding has not been started by admin for this zone yet.';
+    }
+    if (zone.uiStatus === 'won') {
+      return 'You won this zone. Bidding is closed.';
+    }
+    if (zone.uiStatus === 'lost') {
+      return 'Auction ended — you did not win this zone.';
     }
     if (zone.uiStatus === 'closed') {
       return 'Bidding has closed for this zone.';
@@ -484,6 +556,11 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
     }
     zone.canBid = !!payload['canBid'];
     zone.paymentRequired = !!payload['paymentRequired'];
+    const reviewStatus = String(payload['reviewStatus'] ?? '').toLowerCase();
+    if (reviewStatus === 'approved' || reviewStatus === 'rejected' || reviewStatus === 'pending') {
+      this.franchiseReviewStatus = reviewStatus;
+      this.franchiseReviewLoaded = true;
+    }
   }
 
   private findZoneByExternalId(externalZoneId: string): ZoneBidModel | undefined {
@@ -537,22 +614,26 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
 
     zone.auctionDbStatus = 'closed';
     zone.canBid = false;
-    zone.uiStatus = 'closed';
-    zone.uiStatusLabel = 'Closed';
-    zone.uiTimeLabel = '00:00:00';
+    zone.winnerUserId = view.winnerUserId;
+    this.syncZoneUserOutcomeFromWinner(zone, view);
 
-    const status = view.outcomeStatus;
-    const title =
-      status === 'won'
-        ? 'Auction ended — winner finalized'
-        : status === 'cancelled'
-          ? 'Auction cancelled'
-          : 'Auction ended — no winning bid';
+    const myId = this.placeBidUi.getFranchiseUserId();
+    const iWon = !!(myId && view.winnerUserId && this.placeBidUi.sameUser(view.winnerUserId, myId));
+    const hadWinner = view.outcomeStatus === 'won' && !!view.winnerUserId;
 
-    const winnerLine =
-      status === 'won' && view.winnerDisplayName
+    const title = iWon
+      ? 'Congratulations — you won this zone!'
+      : view.outcomeStatus === 'cancelled'
+        ? 'Auction cancelled'
+        : hadWinner
+          ? 'Auction ended — winner finalized'
+          : 'Auction ended';
+
+    const winnerLine = iWon
+      ? `Your winning bid: ${this.formatCurrency(view.winningAmount)}`
+      : hadWinner && view.winnerDisplayName
         ? `Winner: ${view.winnerDisplayName} · ${this.formatCurrency(view.winningAmount)}`
-        : status === 'won'
+        : hadWinner
           ? `Winning bid: ${this.formatCurrency(view.winningAmount)}`
           : 'Bidding is closed for this zone.';
 
@@ -569,6 +650,17 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
     this.nowMs = Date.now();
     this.computeZoneUiState(zone);
     this.cdr.markForCheck();
+  }
+
+  private syncZoneUserOutcomeFromWinner(zone: ZoneBidModel, view: AuctionWinnerFinalizedView): void {
+    const myId = this.placeBidUi.getFranchiseUserId();
+    const participated =
+      zone.userParticipated ||
+      this.userBidActivityAt.has(zone.id) ||
+      !!(myId && view.winnerUserId && this.placeBidUi.sameUser(view.winnerUserId, myId));
+    zone.userParticipated = participated;
+    zone.userWon = !!(myId && view.winnerUserId && this.placeBidUi.sameUser(view.winnerUserId, myId));
+    zone.winnerUserId = view.winnerUserId;
   }
 
   private onBidUpdated(p: BidUpdatedPayload): void {
@@ -740,6 +832,9 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
             canBid: false,
             bidStartTime: prev.bidStartTime,
             bidEndTime: prev.bidEndTime,
+            winnerUserId: prev.winnerUserId,
+            userParticipated: prev.userParticipated,
+            userWon: prev.userWon,
           }
         : {}),
     };
@@ -1055,6 +1150,14 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
     const bidEndTime = row.bid_end_time ? new Date(row.bid_end_time) : null;
     const minBidIncrement =
       Number(row.minBidIncrement) > 0 ? Math.round(Number(row.minBidIncrement)) : zone.minBidIncrement;
+    const userParticipated =
+      !!row.userParticipated || (zone.userParticipated ?? false) || this.userBidActivityAt.has(zone.id);
+    const winnerUserId = row.winnerUserId ?? zone.winnerUserId ?? null;
+    const myId = this.placeBidUi.getFranchiseUserId();
+    const userWon =
+      row.userWon === true ||
+      !!(myId && winnerUserId && this.placeBidUi.sameUser(winnerUserId, myId));
+
     return {
       ...zone,
       auctionConfigured: true,
@@ -1065,6 +1168,9 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
       bidStartTime,
       bidEndTime,
       deadline: bidEndTime ?? zone.deadline,
+      winnerUserId,
+      userParticipated,
+      userWon,
     };
   }
 
@@ -1154,6 +1260,9 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
       auctionDbStatus: 'not_configured',
       bidStartTime: null,
       bidEndTime: null,
+      winnerUserId: null,
+      userParticipated: false,
+      userWon: false,
     };
   }
 
@@ -1275,7 +1384,11 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
   }
 
   openBid(zone: ZoneBidModel): void {
-    if (!this.canPlaceBidOnZone(zone)) return;
+    const blocked = this.placeBidBlockedReason(zone);
+    if (!this.canPlaceBidOnZone(zone)) {
+      if (blocked) this.showBidBlockedToast(blocked);
+      return;
+    }
     this.selectedZone = zone;
     this.bidError = null;
     this.bidForm.reset({ bidAmount: this.getMinimumNextBid(zone) });
@@ -1287,6 +1400,11 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
 
   openBidFromDetails(): void {
     if (!this.selectedZone) return;
+    const blocked = this.placeBidBlockedReason(this.selectedZone);
+    if (!this.canPlaceBidOnZone(this.selectedZone)) {
+      if (blocked) this.showBidBlockedToast(blocked);
+      return;
+    }
     this.bidError = null;
     this.bidForm.reset({ bidAmount: this.getMinimumNextBid(this.selectedZone) });
     this.isZoneDetailsOpen = false;
@@ -1322,6 +1440,13 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
   submitBid(): void {
     if (!this.selectedZone) return;
 
+    if (!this.isFranchiseApproved()) {
+      const msg = this.reviewBlockedMessage();
+      this.bidError = msg;
+      this.showBidBlockedToast(msg);
+      return;
+    }
+
     if (this.bidForm.invalid) {
       this.snackBar.open('❌ Enter a valid bid amount.', 'OK', {
         duration: 2800,
@@ -1342,6 +1467,16 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const zone = this.selectedZone;
+    const blocked = this.placeBidBlockedReason(zone);
+    if (!this.canPlaceBidOnZone(zone)) {
+      if (blocked) {
+        this.bidError = blocked;
+        this.showBidBlockedToast(blocked);
+      }
+      return;
+    }
+
     const sock = this.biddingRealtime.getClient();
     if (!sock?.connected) {
       const msg = 'Connect to the bidding server to submit (sign in if needed).';
@@ -1354,7 +1489,6 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
     }
 
     this.bidError = null;
-    const zone = this.selectedZone;
     this.bidSubmitting = true;
     this.cdr.markForCheck();
     const startedAt = Date.now();
@@ -1379,7 +1513,7 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
         amount: inputAmount,
         basePrice: zone.basePrice,
       },
-      (res: { ok?: boolean; message?: string }) => {
+      (res: { ok?: boolean; message?: string; code?: string }) => {
         if (ackHandled) return;
         ackHandled = true;
         clearTimeout(ackTimeout);
@@ -1391,10 +1525,16 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
             if (!res?.ok) {
               const err = res?.message || 'Could not place bid.';
               this.bidError = err;
-              this.snackBar.open(`❌ ${err}`, 'OK', {
-                duration: 4000,
-                panelClass: ['place-bid-snack', 'place-bid-snack--error'],
-              });
+              if (res?.code === 'NOT_APPROVED' || res?.code === 'REJECTED') {
+                this.franchiseReviewStatus =
+                  res.code === 'REJECTED' ? 'rejected' : 'pending';
+                this.showBidBlockedToast(err);
+              } else {
+                this.snackBar.open(`❌ ${err}`, 'OK', {
+                  duration: 4000,
+                  panelClass: ['place-bid-snack', 'place-bid-snack--error'],
+                });
+              }
               return;
             }
             this.snackBar.open(`✅ Your bid ${this.formatCurrency(inputAmount)} placed successfully`, 'OK', {
@@ -1467,6 +1607,9 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
       auctionDbStatus: 'live',
       bidStartTime: new Date(now - 30 * 60 * 1000),
       bidEndTime: new Date(now + minutesLeft * 60 * 1000),
+      winnerUserId: null,
+      userParticipated: false,
+      userWon: false,
       leaderboard: [
         { rank: 1, bidderName: 'Ravi Infra Group', bidAmount: currentBid, bidTime: new Date(now - 900000) },
         {
@@ -1604,6 +1747,41 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
     }
   }
 
+  private isAuctionEndedForDisplay(zone: ZoneBidModel): boolean {
+    if (!zone.auctionConfigured) return false;
+    if (zone.auctionDbStatus === 'closed' || zone.auctionDbStatus === 'cancelled') return true;
+    if (zone.auctionDbStatus === 'not_configured' || zone.auctionDbStatus === 'scheduled') {
+      return false;
+    }
+    const startMs = zone.bidStartTime?.getTime() ?? NaN;
+    const endMs = zone.deadline.getTime();
+    const started = Number.isFinite(startMs) && this.nowMs >= startMs;
+    const ended = Number.isFinite(endMs) && this.nowMs >= endMs;
+    return started && ended;
+  }
+
+  private applyPostAuctionZoneUi(zone: ZoneBidModel): void {
+    const myId = this.placeBidUi.getFranchiseUserId();
+    const userParticipated =
+      zone.userParticipated || this.userBidActivityAt.has(zone.id);
+    const userWon =
+      zone.userWon || !!(myId && zone.winnerUserId && this.placeBidUi.sameUser(zone.winnerUserId, myId));
+
+    if (userWon) {
+      zone.uiStatus = 'won';
+      zone.uiStatusLabel = 'Won';
+    } else if (userParticipated) {
+      zone.uiStatus = 'lost';
+      zone.uiStatusLabel = 'Lost';
+    } else {
+      zone.uiStatus = 'closed';
+      zone.uiStatusLabel = 'Closed';
+    }
+    zone.uiTimeLabel = '00:00:00';
+    zone.uiTimerUrgency = 'calm';
+    zone.uiLastBidAgo = '—';
+  }
+
   private computeZoneUiState(zone: ZoneBidModel): void {
     if (!zone.auctionConfigured) {
       zone.uiStatus = 'inactive';
@@ -1621,12 +1799,8 @@ export class PlaceBidComponent implements OnInit, OnDestroy {
       zone.uiLastBidAgo = '—';
       return;
     }
-    if (zone.auctionDbStatus === 'closed' || zone.auctionDbStatus === 'cancelled') {
-      zone.uiStatus = 'closed';
-      zone.uiStatusLabel = 'Closed';
-      zone.uiTimeLabel = '00:00:00';
-      zone.uiTimerUrgency = 'calm';
-      zone.uiLastBidAgo = '—';
+    if (this.isAuctionEndedForDisplay(zone)) {
+      this.applyPostAuctionZoneUi(zone);
       return;
     }
 

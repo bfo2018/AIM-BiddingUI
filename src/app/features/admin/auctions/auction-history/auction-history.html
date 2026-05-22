@@ -11,7 +11,10 @@
         </div>
       </div>
       <div class="page-toolbar-right">
-        <span class="toolbar-badge">{{ filteredRecords.length }} Records</span>
+        <span class="toolbar-badge">{{ filteredRecords.length }} / {{ records.length }} Records</span>
+        <button type="button" class="toolbar-btn" (click)="loadHistory()" [disabled]="loading" aria-label="Refresh history">
+          <span class="material-icons" aria-hidden="true">refresh</span>
+        </button>
         <button type="button" class="toolbar-btn" (click)="resetFilters()" aria-label="Reset filters">
           <span class="material-icons" aria-hidden="true">filter_alt_off</span>
         </button>
@@ -86,10 +89,13 @@
     </div>
   </section>
 
+  <p class="ah-load-error" *ngIf="loadError && !loading" role="alert">{{ loadError }}</p>
+
   <!-- Table -->
   <section class="ah-table-section">
     <div class="ah-table-wrap">
-      <table class="ah-table">
+      <p class="ah-loading" *ngIf="loading">Loading auction history…</p>
+      <table class="ah-table" *ngIf="!loading">
         <thead>
           <tr>
             <th>Zone Name</th>
@@ -167,8 +173,10 @@
               </td>
             </tr>
           </ng-container>
-          <tr *ngIf="filteredRecords.length === 0">
-            <td colspan="11" class="ah-empty">No records match the selected filters.</td>
+          <tr *ngIf="filteredRecords.length === 0 && !loadError">
+            <td colspan="11" class="ah-empty">
+              {{ records.length === 0 ? 'No completed auctions yet.' : 'No records match the selected filters.' }}
+            </td>
           </tr>
         </tbody>
       </table>
